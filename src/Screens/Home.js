@@ -14,6 +14,8 @@ import {Calendar} from 'react-native-calendars'; // Import Calendar
 import Button from '../Components/Button';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {useNavigation} from '@react-navigation/native';
+import FloatingButton from '../Components/FlatingButton';
+import AddTask from '../Components/AddTask';
 const Tab = createBottomTabNavigator();
 
 export default function Home() {
@@ -164,7 +166,7 @@ export default function Home() {
     },
   ]);
   // Replace with your task data
-
+  const [isVisible, setIsVisible] = useState(false);
   const currentDate = new Date();
   const formattedDate = currentDate.toLocaleDateString('en-US', {
     weekday: 'long',
@@ -273,84 +275,101 @@ export default function Home() {
   );
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.header}>
-        <Image style={styles.userImage} source={SourceImages.User} />
-        <View>
-          <Text style={styles.greeting}>Hello, {username}!</Text>
-          <Text style={styles.date}>{formattedDate}</Text>
+    <View style={styles.container}>
+      <ScrollView>
+        <AddTask setIsVisible={setIsVisible} isVisible={isVisible} />
+        <View style={styles.header}>
+          <Image style={styles.userImage} source={SourceImages.User} />
+          <View>
+            <Text style={styles.greeting}>Hello, {username}!</Text>
+            <Text style={styles.date}>{formattedDate}</Text>
+          </View>
         </View>
-      </View>
-      <View style={styles.widgetsCon}>
-        <Calendar
-          onDayPress={day => {
-            const selected = new Date(day.dateString);
-            setSelectedDate(selected);
-            handleFilterByDate(selected);
-          }}
-          markedDates={{
-            [selectedDate.toISOString().split('T')[0]]: {
-              selected: true,
-              disableTouchEvent: false,
-              selectedColor: 'green',
-            },
-            [new Date().toISOString().split('T')[0]]: {
-              // Set current date as selected
-              selected: true,
-              disableTouchEvent: false,
-              selectedColor: 'blue',
-            },
-          }}
-        />
-      </View>
-
-      <>
-        <View style={styles.firstListCon}>
-          <Text style={styles.heading}>Priority Task List</Text>
-          <FlatList
-            data={priorTasks}
-            keyExtractor={(item, index) => index.toString()}
-            renderItem={renderItem}
-            style={styles.taskList}
-            horizontal // Set this for horizontal display
-          />
-          <TouchableOpacity
-            onPress={() => {
-              navigation.navigate('Priority-Task');
+        <View style={styles.widgetsCon}>
+          <Calendar
+            onDayPress={day => {
+              const selected = new Date(day.dateString);
+              setSelectedDate(selected);
+              handleFilterByDate(selected);
             }}
-            style={{alignSelf: 'flex-end', marginTop: 0}}>
-            <Text>View all prior tasks --{'>'}</Text>
-          </TouchableOpacity>
-        </View>
-        <View style={styles.secoundListCon}>
-          <Text style={styles.heading}>Todays Task List</Text>
-
-          {/* <Text></Text> */}
-
-          <FlatList
-            data={filteredTasks}
-            keyExtractor={(item, index) => index.toString()}
-            renderItem={renderItem}
-            style={styles.taskList}
-            horizontal // Set this for horizontal display
+            markedDates={{
+              [selectedDate.toISOString().split('T')[0]]: {
+                selected: true,
+                disableTouchEvent: false,
+                selectedColor: 'green',
+              },
+              [new Date().toISOString().split('T')[0]]: {
+                // Set current date as selected
+                selected: true,
+                disableTouchEvent: false,
+                selectedColor: 'blue',
+              },
+            }}
           />
         </View>
-        <TouchableOpacity
-          onPress={() => navigation.navigate('All-Task')}
-          style={{alignSelf: 'flex-end', marginBottom: 30, marginTop: -15}}>
-          <Text>View all tasks --{'>'}</Text>
-        </TouchableOpacity>
-      </>
-    </ScrollView>
+
+        <>
+          <View style={styles.firstListCon}>
+            <View
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+              }}>
+              <Text style={styles.heading}>Priority Task List</Text>
+            </View>
+            <FlatList
+              data={priorTasks}
+              keyExtractor={(item, index) => index.toString()}
+              renderItem={renderItem}
+              style={styles.taskList}
+              horizontal // Set this for horizontal display
+            />
+            <TouchableOpacity
+              onPress={() => {
+                navigation.navigate('Priority-Task');
+              }}
+              style={{alignSelf: 'flex-start', marginTop: 0}}>
+              <Text>View all prior tasks --{'>'}</Text>
+            </TouchableOpacity>
+          </View>
+          <View style={styles.secoundListCon}>
+            {/* <View
+            style={{
+              flexDirection: 'row',
+              justifyContent: 'space-between',
+            }}>
+            <FloatingButton onPress={() => setIsVisible(true)} />
+          </View> */}
+            <Text style={styles.heading}>Todays Task List</Text>
+
+            {/* <Text></Text> */}
+
+            <FlatList
+              data={filteredTasks}
+              keyExtractor={(item, index) => index.toString()}
+              renderItem={renderItem}
+              style={styles.taskList}
+              horizontal // Set this for horizontal display
+            />
+          </View>
+          <TouchableOpacity
+            onPress={() => navigation.navigate('All-Task')}
+            style={{alignSelf: 'flex-start', marginBottom: 30, marginTop: -15}}>
+            <Text>View all tasks --{'>'}</Text>
+          </TouchableOpacity>
+        </>
+      </ScrollView>
+      <FloatingButton onPress={() => setIsVisible(true)} />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
+    padding: 10,
     backgroundColor: '#FFFFFF',
-    marginBottom: 1,
+    // marginBottom: 1,
   },
   header: {
     flexDirection: 'row',
@@ -402,8 +421,8 @@ const styles = StyleSheet.create({
     left: -20,
   },
   widgetsCon: {
-    height: 300,
-    width: '100%',
+    // height: 300,
+    // width: '100%',
     // backgroundColor: 'green',
     // alignItems: 'center',
   },
@@ -451,5 +470,23 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: 'black',
     fontSize: 8,
+  },
+  addTaskModalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  floatingButton: {
+    position: 'absolute',
+    bottom: 5,
+    right: 20,
+    backgroundColor: 'blue',
+    borderRadius: 30,
+    width: 40,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 5,
   },
 });

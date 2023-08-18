@@ -13,6 +13,8 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import {useNavigation} from '@react-navigation/native';
 import {Calendar} from 'react-native-calendars';
 import {SwipeListView} from 'react-native-swipe-list-view';
+import FloatingButton from '../Components/FlatingButton';
+import AddTask from '../Components/AddTask';
 
 export default function AllTaskList() {
   const navigation = useNavigation();
@@ -163,6 +165,7 @@ export default function AllTaskList() {
       status: 'New',
     },
   ]);
+  const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
     const filteredPriorTasks = tasks.filter(item => item.status === 'Prior');
@@ -369,6 +372,7 @@ export default function AllTaskList() {
 
   return (
     <View style={styles.container}>
+      <AddTask setIsVisible={setIsVisible} isVisible={isVisible} />
       <View style={styles.topFilterCon}>
         <TouchableOpacity
           style={styles.btn}
@@ -469,7 +473,10 @@ export default function AllTaskList() {
       </View>
       <View style={styles.allTaskCon}>
         <View style={styles.allTaskCon}>
-          <Text style={styles.heading}>All Task:</Text>
+          <View>
+            <Text style={styles.heading}>All Task:</Text>
+            <FloatingButton onPress={() => setIsVisible(true)} />
+          </View>
           <SwipeListView
             data={tasks}
             renderItem={renderShowItem}
@@ -481,75 +488,6 @@ export default function AllTaskList() {
             previewOpenDelay={3000}
             onRowDidOpen={onItemOpen}
           />
-          {/* <FlatList
-            // style={styles.taskList}
-            data={tasks}
-            keyExtractor={item => item.id}
-            renderItem={(item, index) => {
-              return (
-                <View style={styles.allTaskItem}>
-                  <View style={styles.taskInfo}>
-                    <View style={{flexDirection: 'row'}}>
-                      <Text
-                        style={{
-                          //   left: -75,
-                          fontSize: 12,
-                          fontWeight: '500',
-                          color: 'black',
-                          borderWidth: 1,
-                          borderRadius: 10,
-                          padding: 5,
-                          marginBottom: 10,
-                          backgroundColor:
-                            item.item.status === 'Completed'
-                              ? 'green'
-                              : item.item.status === 'new'
-                              ? 'blue'
-                              : item.item.status === 'Prior'
-                              ? 'tomato'
-                              : '#FFFFFF',
-                        }}>
-                        {item.item.status}
-                      </Text>
-                      <Text style={styles.bottomtaskDateTime}>
-                        {item.item.dateTime}
-                      </Text>
-                    </View>
-                    <View style={{flexDirection: 'row'}}>
-                      <Text
-                        style={{
-                          //   left: -75,
-                          fontSize: 14,
-                          fontWeight: '500',
-                          color: 'black',
-                          marginBottom: 10,
-                        }}>
-                        Title:
-                      </Text>
-                      <Text style={styles.bottomtasktitle}>
-                        {item.item.title}
-                      </Text>
-                    </View>
-                    <View style={{flexDirection: 'row'}}>
-                      <Text
-                        style={{
-                          //   left: -75,
-                          fontSize: 14,
-                          fontWeight: '500',
-                          color: 'black',
-                          marginBottom: 10,
-                        }}>
-                        Description:
-                      </Text>
-                      <Text style={styles.bottomtaskdescription}>
-                        {item.item.description}
-                      </Text>
-                    </View>
-                  </View>
-                </View>
-              );
-            }}
-          /> */}
           <Text style={{}}></Text>
         </View>
       </View>

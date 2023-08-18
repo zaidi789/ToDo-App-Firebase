@@ -11,6 +11,7 @@ import Signup from '../Screens/SignUp';
 import AllTaskList from '../Screens/AllTaskList';
 import CompletedTaskList from '../Screens/CompletedTaskList';
 import PriorityTaskList from '../Screens/PriorityTaskList';
+import ArchieveList from '../Screens/ArchieveList';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -26,11 +27,13 @@ function HomeTabs() {
           if (route.name === 'Home') {
             iconName = 'home';
           } else if (route.name === 'All-Task') {
-            iconName = 'list-circle-outline';
+            iconName = 'list-circle-sharp';
           } else if (route.name === 'Completed-Task') {
-            iconName = 'checkmark-done-circle-outline';
+            iconName = 'checkmark-done-circle-sharp';
           } else if (route.name === 'Priority-Task') {
-            iconName = 'alert-circle-outline';
+            iconName = 'alert-circle-sharp';
+          } else if (route.name === 'ArchieveList') {
+            iconName = 'archive-sharp';
           }
 
           const iconSize = focused ? size + 8 : size;
@@ -66,6 +69,14 @@ function HomeTabs() {
       <Tab.Screen
         name="Priority-Task"
         component={PriorityTaskList}
+        options={{
+          headerShown: false,
+          // tabBarStyle: {display: 'none'},
+        }}
+      />
+      <Tab.Screen
+        name="ArchieveList"
+        component={ArchieveList}
         options={{
           headerShown: false,
           // tabBarStyle: {display: 'none'},
