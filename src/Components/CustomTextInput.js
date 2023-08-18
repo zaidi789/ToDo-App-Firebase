@@ -49,8 +49,6 @@ const CustomTextInput = props => {
         {leftIconName ? (
           <View
             style={{
-              // borderRadius: 10,
-              // borderWidth: 2,
               height: 52,
               width: 52,
               justifyContent: 'center',
@@ -95,7 +93,8 @@ const CustomTextInput = props => {
           </TouchableOpacity>
         ) : null}
       </View>
-      {value !== '' && (
+
+      {!value && (
         <View
           style={[
             styles.labelContainer,
@@ -144,7 +143,6 @@ const styles = StyleSheet.create({
   },
   leftIcon: {
     marginRight: 0,
-    // left: 5,
   },
   rightIconContainer: {
     padding: 8,

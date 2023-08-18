@@ -6,7 +6,7 @@ import {
   Image,
   TouchableOpacity,
 } from 'react-native';
-import React from 'react';
+import React, {useState} from 'react';
 import SourceImages from '../Images/SourceImages';
 import CustomTextInput from '../Components/CustomTextInput';
 import Button from '../Components/Button';
@@ -14,6 +14,62 @@ import {useNavigation} from '@react-navigation/native';
 
 export default function Signup() {
   const navigation = useNavigation();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [username, setUsername] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [emailErrorText, setEmailErrorText] = useState('');
+  const [usernameErrorText, setUsernameErrorText] = useState('');
+  const [passwordErrorText, setPasswordErrorText] = useState('');
+  const [confirmPasswordErrorText, setConfirmPasswordErrorText] = useState('');
+
+  const handleSignUp = () => {
+    let hasErrors = false;
+
+    if (username === '') {
+      setUsernameErrorText('Please enter your username');
+      hasErrors = true;
+    } else {
+      setUsernameErrorText('');
+    }
+
+    if (email === '') {
+      setEmailErrorText('Please enter your email');
+      hasErrors = true;
+    } else {
+      setEmailErrorText('');
+    }
+
+    if (password === '') {
+      setPasswordErrorText('Please enter your password');
+      hasErrors = true;
+    } else {
+      setPasswordErrorText('');
+    }
+
+    if (confirmPassword === '') {
+      setConfirmPasswordErrorText('Please enter confirm password');
+      hasErrors = true;
+    } else if (password !== confirmPassword) {
+      setConfirmPasswordErrorText("Passwords don't match");
+      hasErrors = true;
+    } else {
+      setConfirmPasswordErrorText('');
+    }
+
+    if (!hasErrors) {
+      console.log('email', email, 'password', password);
+      setUsername('');
+      setEmail('');
+      setPassword('');
+      setConfirmPassword('');
+      setUsernameErrorText('');
+      setEmailErrorText('');
+      setPasswordErrorText('');
+      setConfirmPasswordErrorText('');
+    }
+  };
+
   return (
     <ScrollView style={styles.container}>
       <View style={styles.logoCon}>
@@ -31,6 +87,9 @@ export default function Signup() {
           placeholder={'Enter your username'}
           style={styles.input1}
           isUserName={true}
+          onChangeText={setUsername}
+          value={username}
+          errorText={usernameErrorText}
           // errorText={'Please Enter your Email'}
         />
         <CustomTextInput
@@ -38,6 +97,10 @@ export default function Signup() {
           placeholder={'Enter your Email'}
           style={styles.input2}
           isEmail={true}
+          onChangeText={setEmail}
+          value={email}
+          errorText={emailErrorText}
+
           // errorText={'Please Enter your Email'}
         />
         <CustomTextInput
@@ -45,6 +108,10 @@ export default function Signup() {
           placeholder={'Enter your Password'}
           style={styles.input3}
           isPassword={true}
+          onChangeText={setPassword}
+          value={password}
+          errorText={passwordErrorText}
+
           // errorText={'Please Enter your Password'}
         />
         <CustomTextInput
@@ -52,12 +119,19 @@ export default function Signup() {
           placeholder={'Confirm Password'}
           style={styles.input4}
           isPassword={true}
+          onChangeText={setConfirmPassword}
+          value={confirmPassword}
+          errorText={confirmPasswordErrorText}
+
           // errorText={'Please Enter your Password'}
         />
         <Button
           ButtonName={'SignUp'}
           btnStyles={styles.button}
           btnTextStyles={styles.btntext}
+          onPress={() => {
+            handleSignUp();
+          }}
         />
       </View>
       <View style={styles.lastCon}>
@@ -65,7 +139,7 @@ export default function Signup() {
         <TouchableOpacity
           style={styles.lastConBtn}
           onPress={() => {
-            navigation.navigate('SignIns');
+            navigation.navigate('SignIn');
           }}>
           <Text style={styles.lastbtnText}>SignIn</Text>
         </TouchableOpacity>
@@ -103,11 +177,11 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
   },
   formCon: {
-    height: 400,
+    height: 500,
     alignItems: 'center',
   },
   input1: {
-    top: 10,
+    top: 15,
     width: '85%',
   },
   input2: {
@@ -115,34 +189,38 @@ const styles = StyleSheet.create({
     width: '85%',
   },
   input3: {
-    top: 50,
+    top: 45,
     width: '85%',
   },
   input4: {
-    top: 70,
+    top: 60,
     width: '85%',
   },
 
   button: {
-    top: 120,
+    top: 90,
     backgroundColor: '#0077b6',
   },
   btntext: {
     color: '#FFFFFF',
   },
   lastCon: {
+    position: 'absolute',
+    top: 670,
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
+
+    // backgroundColor: 'green',
   },
   lastConBtn: {
-    left: 5,
+    left: 70,
   },
   lastText: {
     fontSize: 16,
     fontWeight: '300',
     color: 'black',
-    // left: 25,
+    left: 65,
     // alignSelf: 'center',
   },
   lastbtnText: {

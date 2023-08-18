@@ -5,6 +5,7 @@ import {
   View,
   Image,
   TouchableOpacity,
+  Alert,
 } from 'react-native';
 import React, {useState} from 'react';
 import SourceImages from '../Images/SourceImages';
@@ -16,7 +17,27 @@ export default function SignIn() {
   const navigation = useNavigation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [emailErrorText, setEmailErrorText] = useState('');
+  const [passwordErrorText, setPasswordErrorText] = useState('');
 
+  const handleSignIn = () => {
+    if (email === '' && password === '') {
+      setEmailErrorText('Please enter your email');
+      setPasswordErrorText('Please enter your password');
+    } else if (email === '') {
+      setEmailErrorText('Please enter your email');
+      setPasswordErrorText('');
+    } else if (password === '') {
+      setEmailErrorText('');
+      setPasswordErrorText('Please enter your password');
+    } else {
+      console.log('email', email, 'password', password);
+      setEmail('');
+      setPassword('');
+      setEmailErrorText('');
+      setPasswordErrorText('');
+    }
+  };
   return (
     <ScrollView style={styles.container}>
       <View style={styles.logoCon}>
@@ -34,6 +55,7 @@ export default function SignIn() {
           isEmail={true}
           onChangeText={setEmail}
           value={email}
+          errorText={emailErrorText}
           // errorText={'Please Enter your Email'}
         />
         <CustomTextInput
@@ -41,6 +63,9 @@ export default function SignIn() {
           placeholder={'Enter your Password'}
           style={styles.input2}
           isPassword={true}
+          onChangeText={setPassword}
+          value={password}
+          errorText={passwordErrorText}
           // errorText={'Please Enter your Password'}
         />
         <TouchableOpacity style={styles.forgetTextCon}>
@@ -50,6 +75,9 @@ export default function SignIn() {
           ButtonName={'SignIn'}
           btnStyles={styles.button}
           btnTextStyles={styles.btntext}
+          onPress={() => {
+            navigation.navigate('HomeTabs');
+          }}
         />
       </View>
       <View style={styles.lastCon}>
