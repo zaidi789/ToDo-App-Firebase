@@ -22,7 +22,7 @@ export default function Home() {
   const navigation = useNavigation();
   const [filteredTasks, setFilteredTasks] = useState([]);
 
-  const username = 'Sara'; // Replace with your username
+  const username = 'Sara';
   const [tasks, setTasks] = useState([
     {
       title: 'Gym',
@@ -165,7 +165,6 @@ export default function Home() {
       status: 'New',
     },
   ]);
-  // Replace with your task data
   const [isVisible, setIsVisible] = useState(false);
   const currentDate = new Date();
   const formattedDate = currentDate.toLocaleDateString('en-US', {
@@ -299,7 +298,7 @@ export default function Home() {
                 selectedColor: 'green',
               },
               [new Date().toISOString().split('T')[0]]: {
-                // Set current date as selected
+                //  current date as selected
                 selected: true,
                 disableTouchEvent: false,
                 selectedColor: 'blue',
@@ -333,23 +332,14 @@ export default function Home() {
             </TouchableOpacity>
           </View>
           <View style={styles.secoundListCon}>
-            {/* <View
-            style={{
-              flexDirection: 'row',
-              justifyContent: 'space-between',
-            }}>
-            <FloatingButton onPress={() => setIsVisible(true)} />
-          </View> */}
             <Text style={styles.heading}>Todays Task List</Text>
-
-            {/* <Text></Text> */}
 
             <FlatList
               data={filteredTasks}
               keyExtractor={(item, index) => index.toString()}
               renderItem={renderItem}
               style={styles.taskList}
-              horizontal // Set this for horizontal display
+              horizontal // this for horizontal display
             />
           </View>
           <TouchableOpacity

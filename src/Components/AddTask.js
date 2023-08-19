@@ -44,8 +44,6 @@ export default function AddTask({isVisible, setIsVisible}) {
     return date.getHours() >= 12 ? 'PM' : 'AM';
   };
   const handleAddTask = () => {
-    // Implement logic to add the task to your tasks list or database
-    // You can use the selectedDate, taskTitle, and taskDescription
     console.log('Task added:', selectedDate, taskTitle, taskDescription);
   };
   return (
@@ -203,17 +201,5 @@ const styles = StyleSheet.create({
   dateTimePickerBox: {
     marginBottom: 20,
     alignItems: 'center',
-  },
-  floatingButton: {
-    position: 'absolute',
-    bottom: 20,
-    right: 20,
-    backgroundColor: 'blue',
-    borderRadius: 30,
-    width: 60,
-    height: 60,
-    alignItems: 'center',
-    justifyContent: 'center',
-    elevation: 5,
   },
 });

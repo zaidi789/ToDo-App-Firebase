@@ -264,22 +264,16 @@ export default function AllTaskList() {
       </View>
     </View>
   );
-  const closeItem = (rowMap, rowKey) => {
-    if (rowMap[rowKey]) {
-      rowMap[rowKey].closeRow();
-    }
+  const closeItem = () => {
+    console.log('Close button press');
   };
 
-  const deleteItem = (rowMap, rowKey) => {
-    closeItem(rowMap, rowKey);
-    const newData = [...listData];
-    const prevIndex = listData.findIndex(item => item.key === rowKey);
-    newData.splice(prevIndex, 1);
-    setListData(newData);
+  const deleteItem = () => {
+    console.log('Close button press');
   };
 
-  const onItemOpen = rowKey => {
-    console.log('This row opened', rowKey);
+  const onItemOpen = () => {
+    console.log('This row opened');
   };
 
   const renderShowItem = item => (
@@ -354,17 +348,17 @@ export default function AllTaskList() {
     <View style={styles.rowBack}>
       <TouchableOpacity
         style={[styles.actionButton, styles.completeBtn]}
-        onPress={() => closeItem(rowMap, data.item.key)}>
+        onPress={() => closeItem()}>
         <Text style={styles.underBtnText}>Completed</Text>
       </TouchableOpacity>
       <TouchableOpacity
         style={[styles.actionButton, styles.closeBtn]}
-        onPress={() => closeItem(rowMap, data.item.key)}>
-        <Text style={styles.underBtnText}>Close</Text>
+        onPress={() => closeItem()}>
+        <Text style={styles.underBtnText}>Add Archieve</Text>
       </TouchableOpacity>
       <TouchableOpacity
         style={[styles.actionButton, styles.deleteBtn]}
-        onPress={() => deleteItem(rowMap, data.item.key)}>
+        onPress={() => deleteItem()}>
         <Text style={styles.underBtnText}>Delete</Text>
       </TouchableOpacity>
     </View>
@@ -460,7 +454,7 @@ export default function AllTaskList() {
             keyExtractor={(item, index) => index.toString()}
             renderItem={renderItem}
             style={styles.taskList}
-            horizontal // Set this for horizontal display
+            horizontal
           />
           <TouchableOpacity
             style={{alignSelf: 'flex-end'}}
