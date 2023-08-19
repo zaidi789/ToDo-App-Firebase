@@ -7,179 +7,21 @@ import {
   View,
 } from 'react-native';
 import {SwipeListView} from 'react-native-swipe-list-view';
+import {useSelector, useDispatch} from 'react-redux';
+import {unarchiveTask} from '../Redux/TaskSlice';
 
 export default function ArchieveList() {
-  const [tasks, setTasks] = useState([
-    {
-      title: 'Gym',
-      description: 'Go to Gym',
-      dateTime: '2023-08-17 10:00 AM',
-      id: 1,
-      status: 'New',
-      archive: true,
-    },
-    {
-      title: 'Office',
-      description: 'Go to Office',
-      dateTime: '2023-08-17 02:30 PM',
-      id: 2,
-      status: 'Completed',
-      archive: true,
-    },
-    {
-      title: 'Work',
-      description: 'Go to Office',
-      dateTime: '2023-08-18 09:00 AM',
-      id: 20,
-      status: 'New',
-      archive: false,
-    },
-    {
-      title: 'Bike',
-      description: 'Go to Office',
-      dateTime: '2023-08-18 03:00 PM',
-      id: 3,
-      status: 'Prior',
-      archive: false,
-    },
-    {
-      title: 'Travel',
-      description: 'Task 5',
-      dateTime: '2023-08-19 11:30 AM',
-      id: 4,
-      status: 'New',
-      archive: false,
-    },
-    {
-      title: 'Gym',
-      description: 'Task 6',
-      dateTime: '2023-08-20 09:00 AM',
-      id: 5,
-      status: 'Completed',
-      archive: false,
-    },
-    {
-      title: 'Gym',
-      description: 'Task 7',
-      dateTime: '2023-08-20 02:30 PM',
-      id: 6,
-      status: 'New',
-      archive: false,
-    },
-    {
-      title: 'Gym',
-      description: 'Task 8',
-      dateTime: '2023-08-21 09:00 AM',
-      id: 7,
-      archive: true,
-      status: 'Prior',
-    },
-    {
-      title: 'Gym',
-      description: 'Task 9',
-      dateTime: '2023-08-21 03:00 PM',
-      id: 8,
-      archive: true,
-      status: 'New',
-    },
-    {
-      title: 'Gym',
-      description: 'Task 10',
-      dateTime: '2023-08-22 11:30 AM',
-      id: 9,
-      archive: true,
-      status: 'Prior',
-    },
-    {
-      title: 'Gym',
-      description: 'Task 11',
-      dateTime: '2023-08-23 09:00 AM',
-      id: 10,
-      archive: true,
-      status: 'New',
-    },
-    {
-      title: 'Gym',
-      description: 'Task 12',
-      dateTime: '2023-08-23 02:30 PM',
-      id: 11,
-      archive: true,
-      status: 'New',
-    },
-    {
-      title: 'Gym',
-      description: 'Task 13',
-      dateTime: '2023-08-24 09:00 AM',
-      id: 12,
-      archive: false,
-      status: 'New',
-    },
-    {
-      title: 'Gym',
-      description: 'Task 14',
-      dateTime: '2023-08-24 03:00 PM',
-      id: 13,
-      archive: false,
-      status: 'Completed',
-    },
-    {
-      title: 'Gym',
-      description: 'Task 15',
-      dateTime: '2023-08-25 11:30 AM',
-      id: 14,
-      archive: false,
-      status: 'New',
-    },
-    {
-      title: 'Gym',
-      description: 'Task 16',
-      dateTime: '2023-08-26 09:00 AM',
-      id: 15,
-      archive: false,
-      status: 'Prior',
-    },
-    {
-      title: 'Gym',
-      description: 'Task 17',
-      dateTime: '2023-08-26 02:30 PM',
-      id: 16,
-      archive: false,
-      status: 'New',
-    },
-    {
-      title: 'Gym',
-      description: 'Task 18',
-      dateTime: '2023-08-27 09:00 AM',
-      id: 17,
-      archive: false,
-      status: 'New',
-    },
-    {
-      title: 'Gym',
-      description: 'Task 19',
-      dateTime: '2023-08-27 03:00 PM',
-      id: 18,
-      archive: false,
-      status: 'Completed',
-    },
-    {
-      title: 'Gym',
-      description: 'Task 20',
-      dateTime: '2023-08-28 11:30 AM',
-      id: 19,
-      archive: false,
-      status: 'New',
-    },
-  ]);
+  const allTasks = useSelector(state => state.allTasks);
+  const dispatch = useDispatch();
   const [archiveTask, setArchiveTask] = useState([]);
   useEffect(() => {
-    const completeTasks = tasks.filter(item => item.archive === true);
-    setArchiveTask(completeTasks);
-  }, []);
+    const archiveTasks = allTasks.filter(item => item.archive === true);
+    setArchiveTask(archiveTasks);
+  }, [allTasks]);
 
-  const closeItem = (rowMap, rowKey) => {
-    if (rowMap[rowKey]) {
-      rowMap[rowKey].closeRow();
+  const closeItem = (item, id) => {
+    if (item[id]) {
+      item[id].closeRow();
     }
   };
 
@@ -191,8 +33,10 @@ export default function ArchieveList() {
     setListData(newData);
   };
 
-  const onItemOpen = rowKey => {
-    console.log('This row opened', rowKey);
+  const handelUnArchive = (item, idx) => {
+    closeItem(item, idx);
+    // console.log(item.id);
+    dispatch(unarchiveTask(item.id));
   };
 
   const renderItem = item => (
@@ -252,11 +96,11 @@ export default function ArchieveList() {
     </TouchableOpacity>
   );
 
-  const renderHiddenItem = (data, rowMap) => (
+  const renderHiddenItem = (item, idx) => (
     <View style={styles.rowBack}>
       <TouchableOpacity
         style={[styles.actionButton, styles.deleteBtn]}
-        onPress={() => deleteItem(rowMap, data.item.key)}>
+        onPress={() => handelUnArchive(item.item, idx)}>
         <Text style={styles.btnText}>UnArchive</Text>
       </TouchableOpacity>
     </View>
@@ -268,17 +112,29 @@ export default function ArchieveList() {
         <Text style={styles.headerText}>Archieve Tasks</Text>
       </View>
       <View style={styles.listCon}>
-        <SwipeListView
-          data={archiveTask}
-          renderItem={renderItem}
-          renderHiddenItem={renderHiddenItem}
-          leftOpenValue={0}
-          rightOpenValue={-75}
-          previewRowKey={'0'}
-          previewOpenValue={-40}
-          previewOpenDelay={3000}
-          onRowDidOpen={onItemOpen}
-        />
+        {archiveTask.length === 0 ? (
+          <View
+            style={{
+              flex: 1,
+              alignItems: 'center',
+              justifyContent: 'center',
+              backgroundColor: '#cce3de',
+            }}>
+            <Text>No Archive added yet.</Text>
+          </View>
+        ) : (
+          <SwipeListView
+            data={archiveTask}
+            renderItem={renderItem}
+            renderHiddenItem={renderHiddenItem}
+            leftOpenValue={75}
+            rightOpenValue={-150}
+            previewRowKey={'0'}
+            previewOpenValue={-40}
+            previewOpenDelay={3000}
+            onRowDidOpen={onItemOpen}
+          />
+        )}
       </View>
     </View>
   );

@@ -7,155 +7,16 @@ import {
   View,
 } from 'react-native';
 import {SwipeListView} from 'react-native-swipe-list-view';
-
+import {useSelector, useDispatch} from 'react-redux';
+import {deleteTask} from '../Redux/TaskSlice';
 export default function CompletedTaskList() {
-  const [tasks, setTasks] = useState([
-    {
-      title: 'Gym',
-      description: 'Go to Gym',
-      dateTime: '2023-08-17 10:00 AM',
-      id: 1,
-      status: 'New',
-    },
-    {
-      title: 'Office',
-      description: 'Go to Office',
-      dateTime: '2023-08-17 02:30 PM',
-      id: 2,
-      status: 'Completed',
-    },
-    {
-      title: 'Work',
-      description: 'Go to Office',
-      dateTime: '2023-08-18 09:00 AM',
-      id: 20,
-      status: 'New',
-    },
-    {
-      title: 'Bike',
-      description: 'Go to Office',
-      dateTime: '2023-08-18 03:00 PM',
-      id: 3,
-      status: 'Prior',
-    },
-    {
-      title: 'Travel',
-      description: 'Task 5',
-      dateTime: '2023-08-19 11:30 AM',
-      id: 4,
-      status: 'New',
-    },
-    {
-      title: 'Gym',
-      description: 'Task 6',
-      dateTime: '2023-08-20 09:00 AM',
-      id: 5,
-      status: 'Completed',
-    },
-    {
-      title: 'Gym',
-      description: 'Task 7',
-      dateTime: '2023-08-20 02:30 PM',
-      id: 6,
-      status: 'New',
-    },
-    {
-      title: 'Gym',
-      description: 'Task 8',
-      dateTime: '2023-08-21 09:00 AM',
-      id: 7,
-      status: 'Prior',
-    },
-    {
-      title: 'Gym',
-      description: 'Task 9',
-      dateTime: '2023-08-21 03:00 PM',
-      id: 8,
-      status: 'New',
-    },
-    {
-      title: 'Gym',
-      description: 'Task 10',
-      dateTime: '2023-08-22 11:30 AM',
-      id: 9,
-      status: 'Prior',
-    },
-    {
-      title: 'Gym',
-      description: 'Task 11',
-      dateTime: '2023-08-23 09:00 AM',
-      id: 10,
-      status: 'New',
-    },
-    {
-      title: 'Gym',
-      description: 'Task 12',
-      dateTime: '2023-08-23 02:30 PM',
-      id: 11,
-      status: 'New',
-    },
-    {
-      title: 'Gym',
-      description: 'Task 13',
-      dateTime: '2023-08-24 09:00 AM',
-      id: 12,
-      status: 'New',
-    },
-    {
-      title: 'Gym',
-      description: 'Task 14',
-      dateTime: '2023-08-24 03:00 PM',
-      id: 13,
-      status: 'Completed',
-    },
-    {
-      title: 'Gym',
-      description: 'Task 15',
-      dateTime: '2023-08-25 11:30 AM',
-      id: 14,
-      status: 'New',
-    },
-    {
-      title: 'Gym',
-      description: 'Task 16',
-      dateTime: '2023-08-26 09:00 AM',
-      id: 15,
-      status: 'Prior',
-    },
-    {
-      title: 'Gym',
-      description: 'Task 17',
-      dateTime: '2023-08-26 02:30 PM',
-      id: 16,
-      status: 'New',
-    },
-    {
-      title: 'Gym',
-      description: 'Task 18',
-      dateTime: '2023-08-27 09:00 AM',
-      id: 17,
-      status: 'New',
-    },
-    {
-      title: 'Gym',
-      description: 'Task 19',
-      dateTime: '2023-08-27 03:00 PM',
-      id: 18,
-      status: 'Completed',
-    },
-    {
-      title: 'Gym',
-      description: 'Task 20',
-      dateTime: '2023-08-28 11:30 AM',
-      id: 19,
-      status: 'New',
-    },
-  ]);
+  const allTasks = useSelector(state => state.allTasks);
+  const dispatch = useDispatch();
   const [completedTasks, setCompletedTasks] = useState([]);
   useEffect(() => {
-    const completeTasks = tasks.filter(item => item.status === 'Completed');
+    const completeTasks = allTasks.filter(item => item.completed === true);
     setCompletedTasks(completeTasks);
-  }, []);
+  }, [allTasks]);
 
   const closeItem = (rowMap, rowKey) => {
     if (rowMap[rowKey]) {
@@ -163,12 +24,9 @@ export default function CompletedTaskList() {
     }
   };
 
-  const deleteItem = (rowMap, rowKey) => {
-    closeItem(rowMap, rowKey);
-    const newData = [...listData];
-    const prevIndex = listData.findIndex(item => item.key === rowKey);
-    newData.splice(prevIndex, 1);
-    setListData(newData);
+  const handelDelete = id => {
+    console.log(id);
+    // dispatch(deleteTask(id));
   };
 
   const onItemOpen = rowKey => {
@@ -232,21 +90,11 @@ export default function CompletedTaskList() {
     </TouchableOpacity>
   );
 
-  const renderHiddenItem = (data, rowMap) => (
+  const renderHiddenItem = item => (
     <View style={styles.rowBack}>
-      {/* <TouchableOpacity
-        style={[styles.actionButton, styles.completeBtn]}
-        onPress={() => closeItem(rowMap, data.item.key)}>
-        <Text style={styles.btnText}>Completed</Text>
-      </TouchableOpacity> */}
-      {/* <TouchableOpacity
-        style={[styles.actionButton, styles.closeBtn]}
-        onPress={() => closeItem(rowMap, data.item.key)}>
-        <Text style={styles.btnText}>Close</Text>
-      </TouchableOpacity> */}
       <TouchableOpacity
         style={[styles.actionButton, styles.deleteBtn]}
-        onPress={() => deleteItem(rowMap, data.item.key)}>
+        onPress={() => handelDelete(item.item.id)}>
         <Text style={styles.btnText}>Delete</Text>
       </TouchableOpacity>
     </View>
@@ -258,17 +106,29 @@ export default function CompletedTaskList() {
         <Text style={styles.headerText}>Completed Tasks</Text>
       </View>
       <View style={styles.listCon}>
-        <SwipeListView
-          data={completedTasks}
-          renderItem={renderItem}
-          renderHiddenItem={renderHiddenItem}
-          leftOpenValue={0}
-          rightOpenValue={-75}
-          previewRowKey={'0'}
-          previewOpenValue={-40}
-          previewOpenDelay={3000}
-          onRowDidOpen={onItemOpen}
-        />
+        {completedTasks.length === 0 ? (
+          <View
+            style={{
+              flex: 1,
+              alignItems: 'center',
+              justifyContent: 'center',
+              backgroundColor: '#99d98c',
+            }}>
+            <Text>No Completed added yet.</Text>
+          </View>
+        ) : (
+          <SwipeListView
+            data={completedTasks}
+            renderItem={renderItem}
+            renderHiddenItem={renderHiddenItem}
+            leftOpenValue={75}
+            rightOpenValue={-150}
+            previewRowKey={'0'}
+            previewOpenValue={-40}
+            previewOpenDelay={3000}
+            onRowDidOpen={onItemOpen}
+          />
+        )}
       </View>
     </View>
   );

@@ -8,268 +8,88 @@ import {
   ScrollView,
   TouchableOpacity,
 } from 'react-native';
-import Icon from 'react-native-vector-icons/Ionicons';
 import SourceImages from '../Images/SourceImages';
 import {Calendar} from 'react-native-calendars'; // Import Calendar
-import Button from '../Components/Button';
-import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {useNavigation} from '@react-navigation/native';
 import FloatingButton from '../Components/FlatingButton';
 import AddTask from '../Components/AddTask';
-const Tab = createBottomTabNavigator();
+import {useSelector} from 'react-redux';
 
 export default function Home() {
-  const navigation = useNavigation();
-  const [filteredTasks, setFilteredTasks] = useState([]);
-
+  const reduxtasks = useSelector(state => state.allTasks);
   const username = 'Sara';
-  const [tasks, setTasks] = useState([
-    {
-      title: 'Gym',
-      description: 'Go to Gym',
-      dateTime: '2023-08-17 10:00 AM',
-      id: 1,
-      status: 'New',
-    },
-    {
-      title: 'Office',
-      description: 'Go to Office',
-      dateTime: '2023-08-17 02:30 PM',
-      id: 2,
-      status: 'Completed',
-    },
-    {
-      title: 'Work',
-      description: 'Go to Office',
-      dateTime: '2023-08-18 09:00 AM',
-      id: 20,
-      status: 'New',
-    },
-    {
-      title: 'Bike',
-      description: 'Go to Office',
-      dateTime: '2023-08-18 03:00 PM',
-      id: 3,
-      status: 'Prior',
-    },
-    {
-      title: 'Travel',
-      description: 'Task 5',
-      dateTime: '2023-08-19 11:30 AM',
-      id: 4,
-      status: 'New',
-    },
-    {
-      title: 'Gym',
-      description: 'Task 6',
-      dateTime: '2023-08-20 09:00 AM',
-      id: 5,
-      status: 'Completed',
-    },
-    {
-      title: 'Gym',
-      description: 'Task 7',
-      dateTime: '2023-08-20 02:30 PM',
-      id: 6,
-      status: 'New',
-    },
-    {
-      title: 'Gym',
-      description: 'Task 8',
-      dateTime: '2023-08-21 09:00 AM',
-      id: 7,
-      status: 'Prior',
-    },
-    {
-      title: 'Gym',
-      description: 'Task 9',
-      dateTime: '2023-08-21 03:00 PM',
-      id: 8,
-      status: 'New',
-    },
-    {
-      title: 'Gym',
-      description: 'Task 10',
-      dateTime: '2023-08-22 11:30 AM',
-      id: 9,
-      status: 'Prior',
-    },
-    {
-      title: 'Gym',
-      description: 'Task 11',
-      dateTime: '2023-08-23 09:00 AM',
-      id: 10,
-      status: 'New',
-    },
-    {
-      title: 'Gym',
-      description: 'Task 12',
-      dateTime: '2023-08-23 02:30 PM',
-      id: 11,
-      status: 'New',
-    },
-    {
-      title: 'Gym',
-      description: 'Task 13',
-      dateTime: '2023-08-24 09:00 AM',
-      id: 12,
-      status: 'New',
-    },
-    {
-      title: 'Gym',
-      description: 'Task 14',
-      dateTime: '2023-08-24 03:00 PM',
-      id: 13,
-      status: 'Completed',
-    },
-    {
-      title: 'Gym',
-      description: 'Task 15',
-      dateTime: '2023-08-25 11:30 AM',
-      id: 14,
-      status: 'New',
-    },
-    {
-      title: 'Gym',
-      description: 'Task 16',
-      dateTime: '2023-08-26 09:00 AM',
-      id: 15,
-      status: 'Prior',
-    },
-    {
-      title: 'Gym',
-      description: 'Task 17',
-      dateTime: '2023-08-26 02:30 PM',
-      id: 16,
-      status: 'New',
-    },
-    {
-      title: 'Gym',
-      description: 'Task 18',
-      dateTime: '2023-08-27 09:00 AM',
-      id: 17,
-      status: 'New',
-    },
-    {
-      title: 'Gym',
-      description: 'Task 19',
-      dateTime: '2023-08-27 03:00 PM',
-      id: 18,
-      status: 'Completed',
-    },
-    {
-      title: 'Gym',
-      description: 'Task 20',
-      dateTime: '2023-08-28 11:30 AM',
-      id: 19,
-      status: 'New',
-    },
-  ]);
+  const navigation = useNavigation();
   const [isVisible, setIsVisible] = useState(false);
+  const [todayTask, setTodayTasks] = useState([]);
+  const [priorTasks, setPriorTasks] = useState([]);
+  const [filteredTasks, setFilteredTasks] = useState([]);
+  // console.log('Today tsaks ------', todayTask);
   const currentDate = new Date();
+  const [selectedDate, setSelectedDate] = useState(currentDate);
   const formattedDate = currentDate.toLocaleDateString('en-US', {
     weekday: 'long',
     year: 'numeric',
     month: 'long',
     day: 'numeric',
   });
-
-  const [selectedDate, setSelectedDate] = useState(currentDate);
-  useEffect(() => {
-    handleFilterByDate(selectedDate);
-  }, []);
-  const [priorTasks, setPriorTasks] = useState([]);
-
-  useEffect(() => {
-    const filteredPriorTasks = tasks.filter(item => item.status === 'Prior');
-    setPriorTasks(filteredPriorTasks);
-  }, []);
-  const handleFilterByDate = date => {
-    const formattedDate = date.toISOString().split('T')[0];
-    // console.log('Formatted Date:', formattedDate);
-
-    const selectedTasks = tasks.filter(task => {
-      if (task.dateTime) {
-        const [datePart, timePart] = task.dateTime.split(' ');
-        const [year, month, day] = datePart.split('-');
-        const [hour, minute] = timePart.split(':');
-        const isAM = timePart.includes('AM');
-
-        const taskDate = new Date(
-          year,
-          month - 1, // Months are 0-based in JavaScript
-          day,
-          isAM ? parseInt(hour) : parseInt(hour) + 12,
-          parseInt(minute),
-        );
-
-        if (!isNaN(taskDate.getTime())) {
-          const taskDateString = taskDate.toISOString().split('T')[0];
-          return taskDateString === formattedDate;
-        }
-      }
-      return false; // Filter out tasks with invalid or missing dateTime
-    });
-
-    setFilteredTasks(selectedTasks);
+  const formatSelectedDate = date => {
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}-${month}-${year}`;
   };
+  const [formattedDateForTask, setFormattedDateForTask] = useState(
+    formatSelectedDate(new Date()),
+  );
+  useEffect(() => {
+    const filteredPriorTasks = reduxtasks.filter(
+      item => item.priority === true,
+    );
+    const filteredTodayTasks = reduxtasks.filter(
+      item => item.date === formattedDateForTask,
+    );
+    // console.log(filteredTodayTasks);
+
+    setPriorTasks(filteredPriorTasks);
+    setTodayTasks(filteredTodayTasks);
+  }, [reduxtasks]);
+
+  const handleFilterByDate = date => {
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const year = date.getFullYear();
+    const formattedDate = `${day}-${month}-${year}`;
+    // console.log(formattedDate);
+    const filteredTasks = reduxtasks.filter(
+      task => task.date === formattedDate,
+    );
+    // console.log('filtered Tasks', filteredTasks);
+    setFilteredTasks(filteredTasks);
+  };
+
   const renderItem = ({item}) => (
     <View style={styles.taskItem}>
-      <View
-        style={{
-          flexDirection: 'row',
-          //   backgroundColor: 'red',
-          //   alignItems: 'center',
-        }}>
-        <Text
-          style={{
-            //   left: -75,
-            fontSize: 8,
-            fontWeight: '500',
-            color: 'black',
-            borderWidth: 1,
-            borderRadius: 3,
-            padding: 3,
-            // marginBottom: 10,
-            backgroundColor:
-              item.status === 'Completed'
-                ? 'green'
-                : item.status === 'new'
-                ? 'blue'
-                : item.status === 'Prior'
-                ? 'tomato'
-                : '#FFFFFF',
-          }}>
-          {item.status}
-        </Text>
-        <Text style={styles.taskDateTime}>{item.dateTime}</Text>
+      <View style={styles.statusBtnCon}>
+        <View>
+          <Text style={styles.tasktitle}>{item.title}</Text>
+          <Text style={styles.taskDateTime}>{item.date}</Text>
+        </View>
+
+        {item.priority && (
+          <Text
+            style={[
+              styles.taskStatusBtn,
+              {
+                backgroundColor: 'tomato',
+              },
+            ]}>
+            prior
+          </Text>
+        )}
       </View>
-      <View style={{flexDirection: 'row'}}>
-        <Text
-          style={{
-            //   left: -75,
-            fontSize: 8,
-            fontWeight: '500',
-            color: 'black',
-            // marginBottom: 10,
-          }}>
-          Title:
-        </Text>
-        <Text style={styles.tasktitle}>{item.title}</Text>
-      </View>
-      <View style={{flexDirection: 'row'}}>
-        <Text
-          style={{
-            //   left: -75,
-            fontSize: 8,
-            fontWeight: '500',
-            color: 'black',
-            marginBottom: 10,
-          }}>
-          Description:
-        </Text>
-        <Text style={styles.taskdescription}>{item.description}</Text>
-      </View>
+      <View style={{flexDirection: 'row'}}></View>
+
+      <Text style={styles.taskdescription}>{item.description}</Text>
     </View>
   );
 
@@ -277,14 +97,14 @@ export default function Home() {
     <View style={styles.container}>
       <ScrollView>
         <AddTask setIsVisible={setIsVisible} isVisible={isVisible} />
-        <View style={styles.header}>
+        <View style={styles.headerCon}>
           <Image style={styles.userImage} source={SourceImages.User} />
           <View>
             <Text style={styles.greeting}>Hello, {username}!</Text>
             <Text style={styles.date}>{formattedDate}</Text>
           </View>
         </View>
-        <View style={styles.widgetsCon}>
+        <View style={{padding: 5, backgroundColor: '#ff99ac'}}>
           <Calendar
             onDayPress={day => {
               const selected = new Date(day.dateString);
@@ -316,13 +136,25 @@ export default function Home() {
               }}>
               <Text style={styles.heading}>Priority Task List</Text>
             </View>
-            <FlatList
-              data={priorTasks}
-              keyExtractor={(item, index) => index.toString()}
-              renderItem={renderItem}
-              style={styles.taskList}
-              horizontal // Set this for horizontal display
-            />
+            {priorTasks.length === 0 ? (
+              <View
+                style={{
+                  flex: 1,
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  backgroundColor: '#c7f9cc',
+                }}>
+                <Text>No Prior Tasks Yet</Text>
+              </View>
+            ) : (
+              <FlatList
+                data={priorTasks}
+                keyExtractor={(item, index) => index.toString()}
+                renderItem={renderItem}
+                style={styles.taskList}
+                horizontal // Set this for horizontal display
+              />
+            )}
             <TouchableOpacity
               onPress={() => {
                 navigation.navigate('Priority-Task');
@@ -332,19 +164,35 @@ export default function Home() {
             </TouchableOpacity>
           </View>
           <View style={styles.secoundListCon}>
-            <Text style={styles.heading}>Todays Task List</Text>
+            <Text style={styles.heading}>
+              {filteredTasks.length > 0
+                ? 'Filtered Tasks'
+                : "Today's Task List"}
+            </Text>
 
-            <FlatList
-              data={filteredTasks}
-              keyExtractor={(item, index) => index.toString()}
-              renderItem={renderItem}
-              style={styles.taskList}
-              horizontal // this for horizontal display
-            />
+            {todayTask.length === 0 ? (
+              <View
+                style={{
+                  flex: 1,
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  backgroundColor: '#c7f9cc',
+                }}>
+                <Text>No Prior Tasks Yet</Text>
+              </View>
+            ) : (
+              <FlatList
+                data={filteredTasks.length > 0 ? filteredTasks : todayTask}
+                keyExtractor={(item, index) => index.toString()}
+                renderItem={renderItem}
+                style={styles.taskList}
+                horizontal // Set this for horizontal display
+              />
+            )}
           </View>
           <TouchableOpacity
             onPress={() => navigation.navigate('All-Task')}
-            style={{alignSelf: 'flex-start', marginBottom: 30, marginTop: -15}}>
+            style={{alignSelf: 'flex-start', marginBottom: 30, marginTop: 5}}>
             <Text>View all tasks --{'>'}</Text>
           </TouchableOpacity>
         </>
@@ -358,18 +206,22 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 10,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#d0f4de',
     // marginBottom: 1,
   },
-  header: {
+  headerCon: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 20,
+    marginTop: 10,
+    marginBottom: 10,
     // backgroundColor: 'green',
   },
   userImage: {
     height: 100,
     width: 100,
+    backgroundColor: '#d0f4de',
+    borderRadius: 60,
+    marginRight: 10,
   },
 
   greeting: {
@@ -385,13 +237,14 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     color: 'black',
+    backgroundColor: '#e0e1dd',
+    width: '100%',
+    padding: 10,
+    marginBottom: 5,
   },
   taskList: {
     marginTop: 5,
     marginBottom: 0,
-  },
-  taskText: {
-    marginLeft: 10,
   },
   firstListCon: {
     height: 170,
@@ -404,11 +257,26 @@ const styles = StyleSheet.create({
     marginTop: 10,
     // backgroundColor: 'green',
   },
-  taskDateTime: {
+  taskStatusBtn: {
+    fontSize: 10,
+    height: 15,
+    // width: 30,
     fontWeight: '500',
     color: 'black',
-    top: -30,
-    left: -20,
+    borderWidth: 1,
+    borderRadius: 3,
+    padding: 1,
+  },
+  statusBtnCon: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  taskDateTime: {
+    fontWeight: '500',
+    color: 'gray',
+    fontSize: 8,
+    // top: -30,
+    // left: -20,
   },
   widgetsCon: {
     // height: 300,
@@ -434,32 +302,31 @@ const styles = StyleSheet.create({
     // backgroundColor: 'green',
     height: 110,
     width: 150,
+    // flexWrap: 'wrap',
     borderWidth: 1,
     padding: 10,
     marginVertical: 5,
     borderRadius: 8,
     marginRight: 15,
   },
-  taskDateTime: {
-    fontWeight: '500',
-    color: 'black',
-    fontSize: 8,
-    alignSelf: 'flex-start',
-    // top: -25,
-    left: 8,
-    marginTop: 5,
-  },
 
   tasktitle: {
     fontWeight: '500',
     color: 'black',
-    fontSize: 8,
+    fontSize: 12,
+    width: 100,
+    // flexWrap: 'wrap',
+    // alignSelf: 'center',
+    // top: 6.5,
+    // left: 3,
   },
 
   taskdescription: {
+    fontSize: 10,
     fontWeight: '500',
     color: 'black',
-    fontSize: 8,
+    marginBottom: 10,
+    marginTop: 5,
   },
   addTaskModalContainer: {
     flex: 1,

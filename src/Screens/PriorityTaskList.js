@@ -7,159 +7,14 @@ import {
   View,
 } from 'react-native';
 import {SwipeListView} from 'react-native-swipe-list-view';
-
+import {useSelector} from 'react-redux';
 export default function PriorityTaskList() {
-  const [listData, setListData] = useState(
-    Array(25)
-      .fill('')
-      .map((_, i) => ({key: `${i}`, text: `Item ${++i}`})),
-  );
-  const [tasks, setTasks] = useState([
-    {
-      title: 'Gym',
-      description: 'Go to Gym',
-      dateTime: '2023-08-17 10:00 AM',
-      id: 1,
-      status: 'New',
-    },
-    {
-      title: 'Office',
-      description: 'Go to Office',
-      dateTime: '2023-08-17 02:30 PM',
-      id: 2,
-      status: 'Completed',
-    },
-    {
-      title: 'Work',
-      description: 'Go to Office',
-      dateTime: '2023-08-18 09:00 AM',
-      id: 20,
-      status: 'New',
-    },
-    {
-      title: 'Bike',
-      description: 'Go to Office',
-      dateTime: '2023-08-18 03:00 PM',
-      id: 3,
-      status: 'Prior',
-    },
-    {
-      title: 'Travel',
-      description: 'Task 5',
-      dateTime: '2023-08-19 11:30 AM',
-      id: 4,
-      status: 'New',
-    },
-    {
-      title: 'Gym',
-      description: 'Task 6',
-      dateTime: '2023-08-20 09:00 AM',
-      id: 5,
-      status: 'Completed',
-    },
-    {
-      title: 'Gym',
-      description: 'Task 7',
-      dateTime: '2023-08-20 02:30 PM',
-      id: 6,
-      status: 'New',
-    },
-    {
-      title: 'Gym',
-      description: 'Task 8',
-      dateTime: '2023-08-21 09:00 AM',
-      id: 7,
-      status: 'Prior',
-    },
-    {
-      title: 'Gym',
-      description: 'Task 9',
-      dateTime: '2023-08-21 03:00 PM',
-      id: 8,
-      status: 'New',
-    },
-    {
-      title: 'Gym',
-      description: 'Task 10',
-      dateTime: '2023-08-22 11:30 AM',
-      id: 9,
-      status: 'Prior',
-    },
-    {
-      title: 'Gym',
-      description: 'Task 11',
-      dateTime: '2023-08-23 09:00 AM',
-      id: 10,
-      status: 'New',
-    },
-    {
-      title: 'Gym',
-      description: 'Task 12',
-      dateTime: '2023-08-23 02:30 PM',
-      id: 11,
-      status: 'New',
-    },
-    {
-      title: 'Gym',
-      description: 'Task 13',
-      dateTime: '2023-08-24 09:00 AM',
-      id: 12,
-      status: 'New',
-    },
-    {
-      title: 'Gym',
-      description: 'Task 14',
-      dateTime: '2023-08-24 03:00 PM',
-      id: 13,
-      status: 'Completed',
-    },
-    {
-      title: 'Gym',
-      description: 'Task 15',
-      dateTime: '2023-08-25 11:30 AM',
-      id: 14,
-      status: 'New',
-    },
-    {
-      title: 'Gym',
-      description: 'Task 16',
-      dateTime: '2023-08-26 09:00 AM',
-      id: 15,
-      status: 'Prior',
-    },
-    {
-      title: 'Gym',
-      description: 'Task 17',
-      dateTime: '2023-08-26 02:30 PM',
-      id: 16,
-      status: 'New',
-    },
-    {
-      title: 'Gym',
-      description: 'Task 18',
-      dateTime: '2023-08-27 09:00 AM',
-      id: 17,
-      status: 'New',
-    },
-    {
-      title: 'Gym',
-      description: 'Task 19',
-      dateTime: '2023-08-27 03:00 PM',
-      id: 18,
-      status: 'Completed',
-    },
-    {
-      title: 'Gym',
-      description: 'Task 20',
-      dateTime: '2023-08-28 11:30 AM',
-      id: 19,
-      status: 'New',
-    },
-  ]);
+  const allTasks = useSelector(state => state.allTasks);
+  // console.log(allTasks);
   const [priorTaskList, setPriorTaskList] = useState([]);
   useEffect(() => {
-    const completeTasks = tasks.filter(item => item.status === 'Prior');
-    setPriorTaskList(completeTasks);
+    const PriorityTasks = allTasks.filter(item => item.priority === true);
+    setPriorTaskList(PriorityTasks);
   }, []);
 
   const closeItem = (rowMap, rowKey) => {
@@ -269,17 +124,29 @@ export default function PriorityTaskList() {
         <Text style={styles.headerText}>Priority Tasks</Text>
       </View>
       <View style={styles.listCon}>
-        <SwipeListView
-          data={priorTaskList}
-          renderItem={renderItem}
-          renderHiddenItem={renderHiddenItem}
-          leftOpenValue={75}
-          rightOpenValue={-150}
-          previewRowKey={'0'}
-          previewOpenValue={-40}
-          previewOpenDelay={3000}
-          onRowDidOpen={onItemOpen}
-        />
+        {priorTaskList.length === 0 ? (
+          <View
+            style={{
+              flex: 1,
+              alignItems: 'center',
+              justifyContent: 'center',
+              backgroundColor: '#f9bec7',
+            }}>
+            <Text>No priority added yet.</Text>
+          </View>
+        ) : (
+          <SwipeListView
+            data={priorTaskList}
+            renderItem={renderItem}
+            renderHiddenItem={renderHiddenItem}
+            leftOpenValue={75}
+            rightOpenValue={-150}
+            previewRowKey={'0'}
+            previewOpenValue={-40}
+            previewOpenDelay={3000}
+            onRowDidOpen={onItemOpen}
+          />
+        )}
       </View>
     </View>
   );

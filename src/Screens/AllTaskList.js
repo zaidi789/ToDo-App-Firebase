@@ -15,180 +15,56 @@ import {Calendar} from 'react-native-calendars';
 import {SwipeListView} from 'react-native-swipe-list-view';
 import FloatingButton from '../Components/FlatingButton';
 import AddTask from '../Components/AddTask';
+import {useSelector, useDispatch} from 'react-redux';
+import {addArchive, completeTask, deleteTask} from '../Redux/TaskSlice';
 
 export default function AllTaskList() {
+  const allTasks = useSelector(state => state.allTasks);
+  // console.log(allTasks);
+  const dispatch = useDispatch();
   const navigation = useNavigation();
+  const [task, setTask] = useState(false);
   const [priorTasks, setPriorTasks] = useState([]);
+  const [allTask, setAllTask] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedFromDate, setSelectedFromDate] = useState(new Date());
   const [selectedToDate, setSelectedToDate] = useState(new Date());
   const [filteredTasks, setFilteredTasks] = useState();
-  const [tasks, setTasks] = useState([
-    {
-      title: 'Gym',
-      description: 'Go to Gym',
-      dateTime: '2023-08-17 10:00 AM',
-      id: 1,
-      status: 'New',
-    },
-    {
-      title: 'Office',
-      description: 'Go to Office',
-      dateTime: '2023-08-17 02:30 PM',
-      id: 2,
-      status: 'Completed',
-    },
-    {
-      title: 'Work',
-      description: 'Go to Office',
-      dateTime: '2023-08-18 09:00 AM',
-      id: 20,
-      status: 'New',
-    },
-    {
-      title: 'Bike',
-      description: 'Go to Office',
-      dateTime: '2023-08-18 03:00 PM',
-      id: 3,
-      status: 'Prior',
-    },
-    {
-      title: 'Travel',
-      description: 'Task 5',
-      dateTime: '2023-08-19 11:30 AM',
-      id: 4,
-      status: 'New',
-    },
-    {
-      title: 'Gym',
-      description: 'Task 6',
-      dateTime: '2023-08-20 09:00 AM',
-      id: 5,
-      status: 'Completed',
-    },
-    {
-      title: 'Gym',
-      description: 'Task 7',
-      dateTime: '2023-08-20 02:30 PM',
-      id: 6,
-      status: 'New',
-    },
-    {
-      title: 'Gym',
-      description: 'Task 8',
-      dateTime: '2023-08-21 09:00 AM',
-      id: 7,
-      status: 'Prior',
-    },
-    {
-      title: 'Gym',
-      description: 'Task 9',
-      dateTime: '2023-08-21 03:00 PM',
-      id: 8,
-      status: 'New',
-    },
-    {
-      title: 'Gym',
-      description: 'Task 10',
-      dateTime: '2023-08-22 11:30 AM',
-      id: 9,
-      status: 'Prior',
-    },
-    {
-      title: 'Gym',
-      description: 'Task 11',
-      dateTime: '2023-08-23 09:00 AM',
-      id: 10,
-      status: 'New',
-    },
-    {
-      title: 'Gym',
-      description: 'Task 12',
-      dateTime: '2023-08-23 02:30 PM',
-      id: 11,
-      status: 'New',
-    },
-    {
-      title: 'Gym',
-      description: 'Task 13',
-      dateTime: '2023-08-24 09:00 AM',
-      id: 12,
-      status: 'New',
-    },
-    {
-      title: 'Gym',
-      description: 'Task 14',
-      dateTime: '2023-08-24 03:00 PM',
-      id: 13,
-      status: 'Completed',
-    },
-    {
-      title: 'Gym',
-      description: 'Task 15',
-      dateTime: '2023-08-25 11:30 AM',
-      id: 14,
-      status: 'New',
-    },
-    {
-      title: 'Gym',
-      description: 'Task 16',
-      dateTime: '2023-08-26 09:00 AM',
-      id: 15,
-      status: 'Prior',
-    },
-    {
-      title: 'Gym',
-      description: 'Task 17',
-      dateTime: '2023-08-26 02:30 PM',
-      id: 16,
-      status: 'New',
-    },
-    {
-      title: 'Gym',
-      description: 'Task 18',
-      dateTime: '2023-08-27 09:00 AM',
-      id: 17,
-      status: 'New',
-    },
-    {
-      title: 'Gym',
-      description: 'Task 19',
-      dateTime: '2023-08-27 03:00 PM',
-      id: 18,
-      status: 'Completed',
-    },
-    {
-      title: 'Gym',
-      description: 'Task 20',
-      dateTime: '2023-08-28 11:30 AM',
-      id: 19,
-      status: 'New',
-    },
-  ]);
   const [isVisible, setIsVisible] = useState(false);
-
   useEffect(() => {
-    const filteredPriorTasks = tasks.filter(item => item.status === 'Prior');
+    if (Array.isArray(allTasks) && allTasks.length > 0) {
+      setTask(true); // Set task to true
+    } else {
+      setTask(false); // Set task to false
+    }
+    const filteredPriorTasks = allTasks.filter(item => item.priority === true);
     setPriorTasks(filteredPriorTasks);
-  }, []);
-  const currentDate = new Date();
-  const formattedDate = currentDate.toLocaleDateString('en-US', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  });
+    const filteredAllTask = allTasks.filter(item => item.archive === false);
+    setAllTask(filteredAllTask);
+    // setTodayTasks(filteredTodayTasks);
+  }, [allTasks]);
+  const formatDate = date => {
+    const day = date.getDate();
+    const month = date.getMonth() + 1;
+    const year = date.getFullYear();
 
+    return `${day.toString().padStart(1, '0')}-${month
+      .toString()
+      .padStart(1, '0')}-${year}`;
+  };
   const handleFilterByDateRange = (fromDate, toDate) => {
-    const formattedFromDate = fromDate.toISOString().split('T')[0];
-    const formattedToDate = toDate.toISOString().split('T')[0];
-    const filteredTasks = tasks.filter(task => {
-      const taskDate = task.dateTime.split(' ')[0];
+    const formattedFromDate = new Date(fromDate);
+    const formattedToDate = new Date(toDate); // Convert to milliseconds
+    console.log(formattedFromDate, formattedToDate);
+    const filteredTasks = allTasks.filter(task => {
+      const taskDate = new Date(task.date).getTime(); // Convert task date to milliseconds
       return taskDate >= formattedFromDate && taskDate <= formattedToDate;
     });
+
     setFilteredTasks(filteredTasks);
-    console.log(filteredTasks);
   };
+  // console.log(filteredTasks);
+
   const getRangeMarkedDates = (startDate, endDate) => {
     const rangeMarkedDates = {};
     const currentDate = new Date(startDate);
@@ -206,74 +82,31 @@ export default function AllTaskList() {
   };
 
   //   console.log('priority tasks', priorTasks);
-
   const renderItem = ({item}) => (
     <View style={styles.taskItem}>
-      <View
-        style={{
-          flexDirection: 'row',
-        }}>
-        <Text
-          style={{
-            //   left: -75,
-            fontSize: 8,
-            fontWeight: '500',
-            color: 'black',
-            borderWidth: 1,
-            borderRadius: 3,
-            padding: 3,
-            // marginBottom: 10,
-            backgroundColor:
-              item.status === 'Completed'
-                ? 'green'
-                : item.status === 'new'
-                ? 'blue'
-                : item.status === 'Prior'
-                ? 'tomato'
-                : '#FFFFFF',
-          }}>
-          {item.status}
-        </Text>
-        <Text style={styles.taskDateTime}>{item.dateTime}</Text>
+      <View style={styles.statusBtnCon}>
+        <View>
+          <Text style={styles.tasktitle}>{item.title}</Text>
+          <Text style={styles.priorTaskDateTime}>{item.date}</Text>
+        </View>
+
+        <Text style={[styles.taskStatusBtn, {}]}>prior</Text>
       </View>
-      <View style={{flexDirection: 'row'}}>
-        <Text
-          style={{
-            //   left: -75,
-            fontSize: 8,
-            fontWeight: '500',
-            color: 'black',
-            // marginBottom: 10,
-          }}>
-          Title:
-        </Text>
-        <Text style={styles.tasktitle}>{item.title}</Text>
-      </View>
-      <View style={{flexDirection: 'row'}}>
-        <Text
-          style={{
-            //   left: -75,
-            fontSize: 8,
-            fontWeight: '500',
-            color: 'black',
-            marginBottom: 10,
-          }}>
-          Description:
-        </Text>
-        <Text style={styles.taskdescription}>{item.description}</Text>
-      </View>
+      <View style={{flexDirection: 'row'}}></View>
+
+      <Text style={styles.taskdescription}>{item.description}</Text>
     </View>
   );
-  const closeItem = () => {
-    console.log('Close button press');
+  const handelComplete = id => {
+    dispatch(completeTask(id));
   };
 
-  const deleteItem = () => {
-    console.log('Close button press');
+  const handelDelete = id => {
+    dispatch(deleteTask(id));
   };
 
-  const onItemOpen = () => {
-    console.log('This row opened');
+  const handelArchive = id => {
+    dispatch(addArchive(id));
   };
 
   const renderShowItem = item => (
@@ -287,78 +120,40 @@ export default function AllTaskList() {
           flexDirection: 'row',
           justifyContent: 'space-between',
         }}>
-        <Text
-          style={{
-            fontSize: 12,
-            fontWeight: '500',
-            color: 'black',
-            borderWidth: 1,
-            borderRadius: 3,
-            padding: 3,
-            marginLeft: 5,
-            marginTop: 5,
-            color: 'white',
-            // marginBottom: 10,
-            backgroundColor:
-              item.item.status === 'Completed'
-                ? '#008000'
-                : item.item.status === 'Prior'
-                ? '#FF1E1E'
-                : item.item.status === 'New'
-                ? '#0077b6'
-                : '',
-          }}>
-          {item.item.status}
-        </Text>
-        <Text style={styles.bottomtaskDateTime}>{item.item.dateTime}</Text>
-      </View>
-      <View>
-        <View style={{flexDirection: 'row', alignItems: 'center'}}>
-          <Text
-            style={{
-              fontSize: 14,
-              fontWeight: '500',
-              color: 'black',
-              left: 5,
-            }}>
-            Title:
-          </Text>
+        <View>
           <Text style={styles.bottomtasktitle}>{item.item.title}</Text>
+          <Text style={styles.bottomtaskDateTime}>{item.item.date}</Text>
         </View>
+
+        {item.item.priority === true ? (
+          <Text style={[styles.prioritybtn, {backgroundColor: 'tomato'}]}>
+            priority
+          </Text>
+        ) : item.item.completed ? (
+          <Text style={[styles.prioritybtn, {backgroundColor: 'green'}]}>
+            completed
+          </Text>
+        ) : null}
       </View>
-      <View style={{flexDirection: 'row', alignItems: 'center'}}>
-        <Text
-          style={{
-            fontSize: 14,
-            fontWeight: '500',
-            color: 'black',
-            left: 5,
-            // marginBottom: 10,
-          }}>
-          Description:
-        </Text>
-        <Text style={styles.bottomtaskdescription}>
-          {item.item.description}
-        </Text>
-      </View>
+      <Text style={styles.bottomtaskdescription}>{item.item.description}</Text>
     </TouchableOpacity>
   );
 
-  const renderHiddenItem = (data, rowMap) => (
+  const renderHiddenItem = item => (
     <View style={styles.rowBack}>
       <TouchableOpacity
         style={[styles.actionButton, styles.completeBtn]}
-        onPress={() => closeItem()}>
+        onPress={() => handelComplete(item.item.id)}>
         <Text style={styles.underBtnText}>Completed</Text>
       </TouchableOpacity>
       <TouchableOpacity
         style={[styles.actionButton, styles.closeBtn]}
-        onPress={() => closeItem()}>
+        onPress={() => handelArchive(item.item.id)}>
         <Text style={styles.underBtnText}>Add Archieve</Text>
       </TouchableOpacity>
       <TouchableOpacity
         style={[styles.actionButton, styles.deleteBtn]}
-        onPress={() => deleteItem()}>
+        onPress={() => handelDelete(item.item.id)}>
         <Text style={styles.underBtnText}>Delete</Text>
       </TouchableOpacity>
     </View>
@@ -449,20 +244,34 @@ export default function AllTaskList() {
       <View style={styles.priorityLCon}>
         <View style={styles.priorityLCon}>
           <Text style={styles.heading}>Priority Task List:</Text>
-          <FlatList
-            data={priorTasks}
-            keyExtractor={(item, index) => index.toString()}
-            renderItem={renderItem}
-            style={styles.taskList}
-            horizontal
-          />
-          <TouchableOpacity
-            style={{alignSelf: 'flex-end'}}
-            onPress={() => {
-              navigation.navigate('Priority-Task');
-            }}>
-            <Text>View all prior tasks --{'>'}</Text>
-          </TouchableOpacity>
+          {priorTasks.length === 0 ? (
+            <View
+              style={{
+                flex: 1,
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: '#cbdfbd',
+              }}>
+              <Text>No tasks added yet. Add a task now!</Text>
+            </View>
+          ) : (
+            <>
+              <FlatList
+                data={priorTasks}
+                keyExtractor={(item, index) => index.toString()}
+                renderItem={renderItem}
+                style={styles.taskList}
+                horizontal
+              />
+              <TouchableOpacity
+                style={{alignSelf: 'flex-end'}}
+                onPress={() => {
+                  navigation.navigate('Priority-Task');
+                }}>
+                <Text>View all prior tasks --{'>'}</Text>
+              </TouchableOpacity>
+            </>
+          )}
         </View>
       </View>
       <View style={styles.allTaskCon}>
@@ -471,17 +280,30 @@ export default function AllTaskList() {
             <Text style={styles.heading}>All Task:</Text>
             <FloatingButton onPress={() => setIsVisible(true)} />
           </View>
-          <SwipeListView
-            data={tasks}
-            renderItem={renderShowItem}
-            renderHiddenItem={renderHiddenItem}
-            leftOpenValue={75}
-            rightOpenValue={-150}
-            previewRowKey={'0'}
-            previewOpenValue={-40}
-            previewOpenDelay={3000}
-            onRowDidOpen={onItemOpen}
-          />
+          {allTask.length === 0 ? (
+            <View
+              style={{
+                flex: 1,
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: '#cbdfbd',
+              }}>
+              <Text>No tasks added yet. Add a task now!</Text>
+            </View>
+          ) : (
+            <SwipeListView
+              data={filteredTasks ? filteredTasks : allTask}
+              renderItem={renderShowItem}
+              renderHiddenItem={renderHiddenItem}
+              leftOpenValue={75}
+              rightOpenValue={-150}
+              previewRowKey={'0'}
+              previewOpenValue={-40}
+              previewOpenDelay={3000}
+
+              // onRowDidOpen={onItemOpen}
+            />
+          )}
           <Text style={{}}></Text>
         </View>
       </View>
@@ -492,7 +314,7 @@ export default function AllTaskList() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'white',
+    backgroundColor: '#dfe7fd',
   },
   topFilterCon: {
     marginTop: 10,
@@ -535,6 +357,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#f0f0f0',
     // backgroundColor: 'green',
     height: 80,
+    width: 150,
     borderWidth: 1,
     padding: 10,
     marginVertical: 5,
@@ -550,6 +373,26 @@ const styles = StyleSheet.create({
     left: 8,
     marginTop: 5,
   },
+  priorTaskDateTime: {
+    fontWeight: '500',
+    color: 'gray',
+    fontSize: 8,
+    // top: -30,
+    // left: -20,
+  },
+  prioritybtn: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: 'black',
+    borderWidth: 1,
+    borderRadius: 3,
+    padding: 3,
+    marginLeft: 5,
+    marginTop: 5,
+    color: 'white',
+    height: 25,
+    marginRight: 10,
+  },
   allTaskItem: {
     // alignItems: 'center',
     backgroundColor: '#f0f0f0',
@@ -563,33 +406,48 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '600',
     color: 'black',
-    marginBottom: 5,
+    marginBottom: 10,
     left: 5,
   },
   bottomtaskDateTime: {
     fontWeight: '500',
-    color: 'black',
-    fontSize: 12,
-    marginRight: 5,
+    color: 'gray',
+    fontSize: 10,
+    // marginRight: 5,
     alignSelf: 'flex-start',
     // top: -25,
-    // left: 8,
-    marginTop: 8,
+    left: 5,
+    // marginTop: 8,
   },
   tasktitle: {
+    width: 100,
     fontWeight: '500',
     color: 'black',
-    fontSize: 8,
-    // top: -30,
-    // left: -80,
+    fontSize: 12,
+    // alignSelf: 'center',
+    // top: 6.5,
+    // left: 3,
   },
   bottomtasktitle: {
     fontWeight: '500',
     color: 'black',
-    fontSize: 14,
+    fontSize: 20,
     left: 7,
-    // top: -30,
+    top: 5,
     // left: -80,
+  },
+  taskStatusBtn: {
+    fontSize: 10,
+    height: 15,
+    // width: 30,
+    fontWeight: '500',
+    color: 'black',
+    borderWidth: 1,
+    borderRadius: 3,
+    padding: 1,
+    // marginRight: 10,
+    marginLeft: 10,
+    backgroundColor: 'tomato',
   },
   taskdescription: {
     fontWeight: '500',
@@ -598,6 +456,11 @@ const styles = StyleSheet.create({
     // top: -30,
     // left: -80,
   },
+  statusBtnCon: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+
   bottomtaskdescription: {
     fontWeight: '500',
     color: 'black',
@@ -605,6 +468,7 @@ const styles = StyleSheet.create({
     // top: -30,
     left: 5,
   },
+
   centeredView: {
     flex: 1,
     justifyContent: 'center',
