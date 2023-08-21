@@ -5,7 +5,6 @@ import {
   View,
   Image,
   TouchableOpacity,
-  Alert,
 } from 'react-native';
 import React, {useState} from 'react';
 import SourceImages from '../Images/SourceImages';
