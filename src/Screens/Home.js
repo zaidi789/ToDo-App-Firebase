@@ -19,10 +19,12 @@ export default function Home() {
   const reduxtasks = useSelector(state => state.allTasks);
   const username = 'Sara';
   const navigation = useNavigation();
+  const [taskState, setTaskState] = useState([reduxtasks]);
   const [isVisible, setIsVisible] = useState(false);
   const [todayTask, setTodayTasks] = useState([]);
   const [priorTasks, setPriorTasks] = useState([]);
   const [filteredTasks, setFilteredTasks] = useState([]);
+  const [editingTask, setEditingTask] = useState(null);
   // console.log('Today tsaks ------', todayTask);
   const currentDate = new Date();
   const [selectedDate, setSelectedDate] = useState(currentDate);
@@ -41,6 +43,7 @@ export default function Home() {
   const [formattedDateForTask, setFormattedDateForTask] = useState(
     formatSelectedDate(new Date()),
   );
+  // console.log(reduxtasks);
   useEffect(() => {
     const filteredPriorTasks = reduxtasks.filter(
       item => item.priority === true,
@@ -63,40 +66,58 @@ export default function Home() {
     const filteredTasks = reduxtasks.filter(
       task => task.date === formattedDate,
     );
+
     // console.log('filtered Tasks', filteredTasks);
     setFilteredTasks(filteredTasks);
   };
+  // console.log('selected data Date----', filteredTasks[1].date);
+
+  const showEditModal = task => {
+    setIsVisible(true);
+    setEditingTask(task);
+  };
 
   const renderItem = ({item}) => (
-    <View style={styles.taskItem}>
-      <View style={styles.statusBtnCon}>
-        <View>
-          <Text style={styles.tasktitle}>{item.title}</Text>
-          <Text style={styles.taskDateTime}>{item.date}</Text>
+    <TouchableOpacity onPress={() => showEditModal(item)}>
+      <View style={styles.taskItem}>
+        <View style={styles.statusBtnCon}>
+          <View>
+            <Text style={styles.tasktitle} numberOfLines={1}>
+              {item.title}
+            </Text>
+            <Text style={styles.taskDateTime}>{item.date}</Text>
+          </View>
+
+          {item.priority && (
+            <Text
+              style={[
+                styles.taskStatusBtn,
+                {
+                  backgroundColor: 'tomato',
+                },
+              ]}>
+              prior
+            </Text>
+          )}
         </View>
+        <View style={{flexDirection: 'row'}}></View>
 
-        {item.priority && (
-          <Text
-            style={[
-              styles.taskStatusBtn,
-              {
-                backgroundColor: 'tomato',
-              },
-            ]}>
-            prior
-          </Text>
-        )}
+        <Text style={styles.taskdescription} numberOfLines={3}>
+          {item.description}
+        </Text>
       </View>
-      <View style={{flexDirection: 'row'}}></View>
-
-      <Text style={styles.taskdescription}>{item.description}</Text>
-    </View>
+    </TouchableOpacity>
   );
 
   return (
     <View style={styles.container}>
       <ScrollView>
-        <AddTask setIsVisible={setIsVisible} isVisible={isVisible} />
+        {/* <AddTask setIsVisible={setIsVisible} isVisible={isVisible} /> */}
+        <AddTask
+          isVisible={isVisible}
+          setIsVisible={setIsVisible}
+          editingTask={editingTask}
+        />
         <View style={styles.headerCon}>
           <Image style={styles.userImage} source={SourceImages.User} />
           <View>
@@ -129,47 +150,41 @@ export default function Home() {
 
         <>
           <View style={styles.firstListCon}>
+            <Text style={styles.heading}>Priority Task List</Text>
+          </View>
+          {priorTasks.length === 0 ? (
             <View
               style={{
-                flexDirection: 'row',
-                justifyContent: 'space-between',
+                flex: 1,
+                justifyContent: 'center',
+                alignItems: 'center',
+                backgroundColor: '#c7f9cc',
               }}>
-              <Text style={styles.heading}>Priority Task List</Text>
+              <Text>No Prior Tasks Yet</Text>
             </View>
-            {priorTasks.length === 0 ? (
-              <View
-                style={{
-                  flex: 1,
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  backgroundColor: '#c7f9cc',
-                }}>
-                <Text>No Prior Tasks Yet</Text>
-              </View>
-            ) : (
-              <FlatList
-                data={priorTasks}
-                keyExtractor={(item, index) => index.toString()}
-                renderItem={renderItem}
-                style={styles.taskList}
-                horizontal // Set this for horizontal display
-              />
-            )}
-            <TouchableOpacity
-              onPress={() => {
-                navigation.navigate('Priority-Task');
-              }}
-              style={{alignSelf: 'flex-start', marginTop: 0}}>
-              <Text>View all prior tasks --{'>'}</Text>
-            </TouchableOpacity>
-          </View>
+          ) : (
+            <FlatList
+              data={priorTasks}
+              keyExtractor={(item, index) => index.toString()}
+              renderItem={renderItem}
+              style={styles.taskList}
+              horizontal
+            />
+          )}
+          <TouchableOpacity
+            onPress={() => {
+              navigation.navigate('Priority-Task');
+            }}
+            style={{alignSelf: 'flex-start', marginTop: 0}}>
+            <Text>View all prior tasks --{'>'}</Text>
+          </TouchableOpacity>
+
           <View style={styles.secoundListCon}>
             <Text style={styles.heading}>
               {filteredTasks.length > 0
                 ? 'Filtered Tasks'
                 : "Today's Task List"}
             </Text>
-
             {todayTask.length === 0 ? (
               <View
                 style={{
@@ -178,7 +193,7 @@ export default function Home() {
                   alignItems: 'center',
                   backgroundColor: '#c7f9cc',
                 }}>
-                <Text>No Prior Tasks Yet</Text>
+                <Text>No Today's Tasks Yet</Text>
               </View>
             ) : (
               <FlatList
@@ -186,7 +201,7 @@ export default function Home() {
                 keyExtractor={(item, index) => index.toString()}
                 renderItem={renderItem}
                 style={styles.taskList}
-                horizontal // Set this for horizontal display
+                horizontal
               />
             )}
           </View>
@@ -197,7 +212,11 @@ export default function Home() {
           </TouchableOpacity>
         </>
       </ScrollView>
-      <FloatingButton onPress={() => setIsVisible(true)} />
+      <FloatingButton
+        onPress={() => {
+          setEditingTask(''), setIsVisible(true);
+        }}
+      />
     </View>
   );
 }
@@ -247,10 +266,9 @@ const styles = StyleSheet.create({
     marginBottom: 0,
   },
   firstListCon: {
-    height: 170,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     marginTop: 10,
-
-    // backgroundColor: 'red',
   },
   secoundListCon: {
     height: 170,
@@ -300,7 +318,7 @@ const styles = StyleSheet.create({
     // alignItems: 'center',
     backgroundColor: '#f0f0f0',
     // backgroundColor: 'green',
-    height: 110,
+    // height: 110,
     width: 150,
     // flexWrap: 'wrap',
     borderWidth: 1,
@@ -308,6 +326,7 @@ const styles = StyleSheet.create({
     marginVertical: 5,
     borderRadius: 8,
     marginRight: 15,
+    // flexWrap: 'wrap',
   },
 
   tasktitle: {

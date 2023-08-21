@@ -12,6 +12,7 @@ const taskSlice = createSlice({
       const taskId = action.payload;
       const taskIndex = state.findIndex(task => task.id === taskId);
       if (taskIndex !== -1) {
+        state[taskIndex].priority = false;
         state[taskIndex].completed = true;
       }
     },
@@ -29,6 +30,14 @@ const taskSlice = createSlice({
 
       if (taskIndex !== -1) {
         state[taskIndex].archive = false;
+      }
+    },
+    removePriority(state, action) {
+      const taskId = action.payload;
+      const taskIndex = state.findIndex(task => task.id === taskId);
+
+      if (taskIndex !== -1) {
+        state[taskIndex].priority = false;
       }
     },
     deleteTask(state, action) {
@@ -60,5 +69,6 @@ export const {
   deleteTask,
   editTask,
   unarchiveTask,
+  removePriority,
 } = taskSlice.actions;
 export default taskSlice.reducer;

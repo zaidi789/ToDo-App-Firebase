@@ -29,40 +29,45 @@ export default function AllTaskList() {
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedFromDate, setSelectedFromDate] = useState(new Date());
   const [selectedToDate, setSelectedToDate] = useState(new Date());
-  const [filteredTasks, setFilteredTasks] = useState();
+  const [isFilterApplied, setIsFilterApplied] = useState(false);
+  const [filteredTasks, setFilteredTasks] = useState([]);
   const [isVisible, setIsVisible] = useState(false);
+  const [editingTask, setEditingTask] = useState(null);
   useEffect(() => {
     if (Array.isArray(allTasks) && allTasks.length > 0) {
-      setTask(true); // Set task to true
+      setTask(true);
+      const filteredPriorTasks = allTasks.filter(
+        item => item.priority === true,
+      );
+      setPriorTasks(filteredPriorTasks);
+      const filteredAllTask = allTasks.filter(item => item.archive === false);
+      setAllTask(filteredAllTask);
     } else {
-      setTask(false); // Set task to false
+      setTask(false);
     }
-    const filteredPriorTasks = allTasks.filter(item => item.priority === true);
-    setPriorTasks(filteredPriorTasks);
-    const filteredAllTask = allTasks.filter(item => item.archive === false);
-    setAllTask(filteredAllTask);
-    // setTodayTasks(filteredTodayTasks);
-  }, [allTasks]);
-  const formatDate = date => {
-    const day = date.getDate();
-    const month = date.getMonth() + 1;
-    const year = date.getFullYear();
+  }, [allTasks, navigation]);
 
-    return `${day.toString().padStart(1, '0')}-${month
-      .toString()
-      .padStart(1, '0')}-${year}`;
-  };
   const handleFilterByDateRange = (fromDate, toDate) => {
-    const formattedFromDate = new Date(fromDate);
-    const formattedToDate = new Date(toDate); // Convert to milliseconds
-    console.log(formattedFromDate, formattedToDate);
+    const formattedFromDate = formatSelectedDate(fromDate);
+    const formattedToDate = formatSelectedDate(toDate);
+    // console.log(formattedFromDate, formattedToDate);
+    // console.log(allTasks.date);
+    const taskDates = allTasks.map(task => task.date);
+    // console.log(taskDates);
     const filteredTasks = allTasks.filter(task => {
-      const taskDate = new Date(task.date).getTime(); // Convert task date to milliseconds
+      const taskDate = task.date; // Assuming task.date is already in the format '20-08-2023'
       return taskDate >= formattedFromDate && taskDate <= formattedToDate;
     });
-
+    // console.log(filteredTasks);
     setFilteredTasks(filteredTasks);
   };
+
+  // const formatSelectedDate = date => {
+  //   const day = String(date.getDate()).padStart(1, '0');
+  //   const month = String(date.getMonth() + 1).padStart(1, '0');
+  //   const year = date.getFullYear();
+  //   return `${day}-${month}-${year}`;
+  // };
   // console.log(filteredTasks);
 
   const getRangeMarkedDates = (startDate, endDate) => {
@@ -70,7 +75,8 @@ export default function AllTaskList() {
     const currentDate = new Date(startDate);
 
     while (currentDate <= endDate) {
-      rangeMarkedDates[currentDate.toISOString().split('T')[0]] = {
+      const formattedDate = formatSelectedDate(currentDate);
+      rangeMarkedDates[formattedDate] = {
         selected: true,
         disableTouchEvent: true,
         selectedColor: 'blue',
@@ -81,21 +87,38 @@ export default function AllTaskList() {
     return rangeMarkedDates;
   };
 
+  const formatSelectedDate = date => {
+    const day = String(date.getDate()).padStart(1, '0');
+    const month = String(date.getMonth() + 1).padStart(1, '0');
+    const year = date.getFullYear();
+    return `${day}-${month}-${year}`;
+  };
+
+  const showEditModal = task => {
+    setIsVisible(true);
+    setEditingTask(task);
+  };
   //   console.log('priority tasks', priorTasks);
   const renderItem = ({item}) => (
-    <View style={styles.taskItem}>
-      <View style={styles.statusBtnCon}>
-        <View>
-          <Text style={styles.tasktitle}>{item.title}</Text>
-          <Text style={styles.priorTaskDateTime}>{item.date}</Text>
+    <TouchableOpacity onPress={() => showEditModal(item)}>
+      <View style={styles.taskItem}>
+        <View style={styles.statusBtnCon}>
+          <View>
+            <Text style={styles.tasktitle} numberOfLines={1}>
+              {item.title}
+            </Text>
+            <Text style={styles.priorTaskDateTime} numberOfLines={2}>
+              {item.date}
+            </Text>
+          </View>
+
+          <Text style={styles.taskStatusBtn}>prior</Text>
         </View>
+        <View style={{flexDirection: 'row'}}></View>
 
-        <Text style={[styles.taskStatusBtn, {}]}>prior</Text>
+        <Text style={styles.taskdescription}>{item.description}</Text>
       </View>
-      <View style={{flexDirection: 'row'}}></View>
-
-      <Text style={styles.taskdescription}>{item.description}</Text>
-    </View>
+    </TouchableOpacity>
   );
   const handelComplete = id => {
     dispatch(completeTask(id));
@@ -110,33 +133,42 @@ export default function AllTaskList() {
   };
 
   const renderShowItem = item => (
-    <TouchableOpacity
-      onPress={() => console.log('You touched me')}
-      style={styles.rowFront}
-      underlayColor={'#fff'}
-      activeOpacity={0.9}>
-      <View
-        style={{
-          flexDirection: 'row',
-          justifyContent: 'space-between',
-        }}>
-        <View>
-          <Text style={styles.bottomtasktitle}>{item.item.title}</Text>
-          <Text style={styles.bottomtaskDateTime}>{item.item.date}</Text>
-        </View>
+    <View
+      style={{
+        backgroundColor: '#cbdfbd',
+      }}>
+      <TouchableOpacity
+        onPress={() => showEditModal(item.item)}
+        style={styles.rowFront}
+        underlayColor={'#fff'}
+        activeOpacity={0.5}>
+        <View
+          style={{
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+          }}>
+          <View>
+            <Text style={styles.bottomtasktitle} numberOfLines={1}>
+              {item.item.title}
+            </Text>
+            <Text style={styles.bottomtaskDateTime}>{item.item.date}</Text>
+          </View>
 
-        {item.item.priority === true ? (
-          <Text style={[styles.prioritybtn, {backgroundColor: 'tomato'}]}>
-            priority
-          </Text>
-        ) : item.item.completed ? (
-          <Text style={[styles.prioritybtn, {backgroundColor: 'green'}]}>
-            completed
-          </Text>
-        ) : null}
-      </View>
-      <Text style={styles.bottomtaskdescription}>{item.item.description}</Text>
-    </TouchableOpacity>
+          {item.item.priority === true ? (
+            <Text style={[styles.prioritybtn, {backgroundColor: 'tomato'}]}>
+              priority
+            </Text>
+          ) : item.item.completed ? (
+            <Text style={[styles.prioritybtn, {backgroundColor: 'green'}]}>
+              completed
+            </Text>
+          ) : null}
+        </View>
+        <Text style={styles.bottomtaskdescription}>
+          {item.item.description}
+        </Text>
+      </TouchableOpacity>
+    </View>
   );
 
   const renderHiddenItem = item => (
@@ -161,7 +193,12 @@ export default function AllTaskList() {
 
   return (
     <View style={styles.container}>
-      <AddTask setIsVisible={setIsVisible} isVisible={isVisible} />
+      <AddTask
+        isVisible={isVisible}
+        setIsVisible={setIsVisible}
+        editingTask={editingTask}
+      />
+      {/* <AddTask setIsVisible={setIsVisible} isVisible={isVisible} /> */}
       <View style={styles.topFilterCon}>
         <TouchableOpacity
           style={styles.btn}
@@ -192,8 +229,9 @@ export default function AllTaskList() {
                   onDayPress={day => {
                     const selected = new Date(day.dateString);
                     if (
-                      selected >= selectedFromDate &&
-                      selected <= selectedToDate
+                      !selectedFromDate ||
+                      (selected >= selectedFromDate &&
+                        selected <= selectedToDate)
                     ) {
                       setSelectedFromDate(selected);
                       setSelectedToDate(selected);
@@ -204,17 +242,23 @@ export default function AllTaskList() {
                     }
                   }}
                   markedDates={{
-                    [selectedFromDate.toISOString().split('T')[0]]: {
-                      selected: true,
-                      disableTouchEvent: true,
-                      selectedColor: 'blue',
-                    },
-                    [selectedToDate.toISOString().split('T')[0]]: {
-                      selected: true,
-                      disableTouchEvent: true,
-                      selectedColor: 'blue',
-                    },
-                    ...getRangeMarkedDates(selectedFromDate, selectedToDate),
+                    ...(selectedFromDate &&
+                      selectedToDate && {
+                        [selectedFromDate.toISOString().split('T')[0]]: {
+                          selected: true,
+                          disableTouchEvent: true,
+                          selectedColor: 'blue',
+                        },
+                        [selectedToDate.toISOString().split('T')[0]]: {
+                          selected: true,
+                          disableTouchEvent: true,
+                          selectedColor: 'blue',
+                        },
+                        ...getRangeMarkedDates(
+                          selectedFromDate,
+                          selectedToDate,
+                        ),
+                      }),
                   }}
                 />
               </View>
@@ -232,7 +276,6 @@ export default function AllTaskList() {
             <TouchableOpacity
               style={[styles.button, styles.buttonClose]}
               onPress={() => {
-                // Decrease the selected date range
                 setSelectedToDate(selectedFromDate);
               }}>
               <Text style={styles.textStyle}>Reset Range</Text>
@@ -245,17 +288,11 @@ export default function AllTaskList() {
         <View style={styles.priorityLCon}>
           <Text style={styles.heading}>Priority Task List:</Text>
           {priorTasks.length === 0 ? (
-            <View
-              style={{
-                flex: 1,
-                alignItems: 'center',
-                justifyContent: 'center',
-                backgroundColor: '#cbdfbd',
-              }}>
-              <Text>No tasks added yet. Add a task now!</Text>
+            <View style={styles.noContent}>
+              <Text>No priority tasks added yet.</Text>
             </View>
           ) : (
-            <>
+            <View style={{backgroundColor: '#cbdfbd'}}>
               <FlatList
                 data={priorTasks}
                 keyExtractor={(item, index) => index.toString()}
@@ -270,29 +307,38 @@ export default function AllTaskList() {
                 }}>
                 <Text>View all prior tasks --{'>'}</Text>
               </TouchableOpacity>
-            </>
+            </View>
           )}
         </View>
       </View>
       <View style={styles.allTaskCon}>
         <View style={styles.allTaskCon}>
           <View>
-            <Text style={styles.heading}>All Task:</Text>
-            <FloatingButton onPress={() => setIsVisible(true)} />
+            {filteredTasks.length > 0 ? (
+              <View style={{flexDirection: 'row'}}>
+                <Text style={styles.heading}>Filtered Task:</Text>
+                <TouchableOpacity
+                  style={styles.clearBtn}
+                  onPress={() => setFilteredTasks([])}>
+                  <Text style={styles.clearBtnText}>Clear-Filter</Text>
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <Text style={styles.heading}>All Task:</Text>
+            )}
+            <FloatingButton
+              onPress={() => {
+                setEditingTask(''), setIsVisible(true);
+              }}
+            />
           </View>
           {allTask.length === 0 ? (
-            <View
-              style={{
-                flex: 1,
-                alignItems: 'center',
-                justifyContent: 'center',
-                backgroundColor: '#cbdfbd',
-              }}>
+            <View style={styles.noContent}>
               <Text>No tasks added yet. Add a task now!</Text>
             </View>
           ) : (
             <SwipeListView
-              data={filteredTasks ? filteredTasks : allTask}
+              data={filteredTasks.length !== 0 ? filteredTasks : allTask}
               renderItem={renderShowItem}
               renderHiddenItem={renderHiddenItem}
               leftOpenValue={75}
@@ -300,8 +346,6 @@ export default function AllTaskList() {
               previewRowKey={'0'}
               previewOpenValue={-40}
               previewOpenDelay={3000}
-
-              // onRowDidOpen={onItemOpen}
             />
           )}
           <Text style={{}}></Text>
@@ -415,6 +459,7 @@ const styles = StyleSheet.create({
     fontSize: 10,
     // marginRight: 5,
     alignSelf: 'flex-start',
+    marginTop: 5,
     // top: -25,
     left: 5,
     // marginTop: 8,
@@ -434,6 +479,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     left: 7,
     top: 5,
+    width: 250,
     // left: -80,
   },
   taskStatusBtn: {
@@ -467,6 +513,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     // top: -30,
     left: 5,
+    marginBottom: 10,
   },
 
   centeredView: {
@@ -528,21 +575,22 @@ const styles = StyleSheet.create({
     backgroundColor: '#CCC',
     borderBottomColor: 'black',
     borderWidth: 0.5,
-    height: 150,
+    // height: 150,
     marginBottom: 10,
     marginTop: 5,
     borderRadius: 10,
+    padding: 5,
   },
   rowBack: {
     marginTop: 5,
     marginBottom: 10,
     alignItems: 'center',
-    backgroundColor: '#DDD',
-    flex: 1,
+    // backgroundColor: 'green',
+    // flex: 1,
     flexDirection: 'row',
     justifyContent: 'space-between',
     paddingLeft: 5,
-    height: 80,
+    height: 50,
   },
   actionButton: {
     alignItems: 'center',
@@ -571,5 +619,26 @@ const styles = StyleSheet.create({
     borderRadius: 10,
 
     // left: -500,
+  },
+  noContent: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#cbdfbd',
+  },
+  clearBtn: {
+    // height: 40,
+    // width: 50,
+    backgroundColor: 'green',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 10,
+    marginLeft: 30,
+    marginBottom: 8,
+    padding: 5,
+  },
+  clearBtnText: {
+    color: 'white',
+    fontWeight: '500',
   },
 });

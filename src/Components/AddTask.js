@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   View,
   Text,
@@ -13,9 +13,9 @@ import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import Button from '../Components/Button';
 import uuid from 'react-native-uuid';
 import {useDispatch} from 'react-redux';
-import {addTask} from '../Redux/TaskSlice';
+import {addTask, editTask} from '../Redux/TaskSlice';
 
-export default function AddTask({isVisible, setIsVisible}) {
+export default function AddTask({isVisible, setIsVisible, editingTask}) {
   const dispatch = useDispatch();
   const [taskTitle, setTaskTitle] = useState('');
   const [taskDescription, setTaskDescription] = useState('');
@@ -29,6 +29,14 @@ export default function AddTask({isVisible, setIsVisible}) {
   const hideDatePicker = () => {
     setDatePickerVisibility(false);
   };
+  useEffect(() => {
+    if (editingTask) {
+      setFormattedDate(editingTask.date);
+      setTaskTitle(editingTask.title);
+      setTaskDescription(editingTask.description);
+      setPriority(editingTask.priority);
+    }
+  }, [editingTask]);
 
   const handleConfirmDate = date => {
     hideDatePicker();
@@ -61,8 +69,8 @@ export default function AddTask({isVisible, setIsVisible}) {
 
   // console.log(formattedDate, formattedTime);
   const handleAddTask = () => {
-    let task = {
-      id: uuid.v4(),
+    const task = {
+      id: editingTask ? editingTask.id : uuid.v4(),
       date: formattedDate,
       time: formattedTime,
       title: taskTitle,
@@ -73,13 +81,17 @@ export default function AddTask({isVisible, setIsVisible}) {
     };
 
     if (taskTitle && taskDescription) {
-      dispatch(addTask(task));
+      if (editingTask) {
+        dispatch(editTask(task));
+      } else {
+        dispatch(addTask(task));
+      }
       setTaskTitle('');
       setTaskDescription('');
       setPriority(false);
-      setSelectedDate(new Date()); // Reset selected date to current date
-      setFormattedDate(formatSelectedDate(new Date())); // Reset formatted date to current date
-      setFormattedTime(formatSelectedTime(new Date())); // Reset formatted time to current time
+      setSelectedDate(new Date());
+      setFormattedDate(formatSelectedDate(new Date()));
+      setFormattedTime(formatSelectedTime(new Date()));
       setIsVisible(false);
     } else {
       alert('Empty task cannot be added');
@@ -99,7 +111,15 @@ export default function AddTask({isVisible, setIsVisible}) {
         <View style={styles.modalView}>
           <TouchableOpacity
             style={styles.closeButton}
-            onPress={() => setIsVisible(false)}>
+            onPress={() => {
+              setTaskTitle('');
+              setTaskDescription('');
+              setPriority(false);
+              setSelectedDate(new Date());
+              setFormattedDate(formatSelectedDate(new Date()));
+              setFormattedTime(formatSelectedTime(new Date()));
+              setIsVisible(false);
+            }}>
             <Icon name="close" size={24} color="gray" />
           </TouchableOpacity>
           <View style={styles.dateTimePickerBox}>
@@ -142,14 +162,6 @@ export default function AddTask({isVisible, setIsVisible}) {
           <View style={styles.statusContainer}>
             <Text style={styles.statusText}>Status: </Text>
             <View style={styles.statusButtonContainer}>
-              {/* <TouchableOpacity
-                style={[
-                  styles.statusButton,
-                  taskStatus === 'New' && styles.activeStatusButton,
-                ]}
-                onPress={() => setTaskStatus('New')}>
-                <Text style={styles.statusButtonText}>New</Text>
-              </TouchableOpacity> */}
               <TouchableOpacity
                 style={[
                   styles.statusButton,
@@ -161,7 +173,7 @@ export default function AddTask({isVisible, setIsVisible}) {
             </View>
           </View>
           <Button
-            ButtonName={'Add-Task'}
+            ButtonName={editingTask ? 'Update' : 'Add-Task'}
             onPress={handleAddTask}
             btnStyles={styles.addTaskButton}
             btnTextStyles={styles.addTaskButtonText}
@@ -228,7 +240,7 @@ const styles = StyleSheet.create({
     height: 450,
     width: '85%',
     margin: 20,
-    backgroundColor: 'white',
+    backgroundColor: '#edede9',
     borderRadius: 20,
     padding: 35,
     // alignItems: 'center',

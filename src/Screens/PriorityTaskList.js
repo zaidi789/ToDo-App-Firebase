@@ -7,32 +7,30 @@ import {
   View,
 } from 'react-native';
 import {SwipeListView} from 'react-native-swipe-list-view';
-import {useSelector} from 'react-redux';
+import {useSelector, useDispatch} from 'react-redux';
+import {completeTask, deleteTask, removePriority} from '../Redux/TaskSlice';
+
 export default function PriorityTaskList() {
+  const dispatch = useDispatch();
   const allTasks = useSelector(state => state.allTasks);
   // console.log(allTasks);
   const [priorTaskList, setPriorTaskList] = useState([]);
   useEffect(() => {
     const PriorityTasks = allTasks.filter(item => item.priority === true);
     setPriorTaskList(PriorityTasks);
-  }, []);
+  }, [allTasks]);
 
-  const closeItem = (rowMap, rowKey) => {
-    if (rowMap[rowKey]) {
-      rowMap[rowKey].closeRow();
-    }
+  const handelDeleteItem = item => {
+    // console.log(item);
+    dispatch(deleteTask(item));
   };
-
-  const deleteItem = (rowMap, rowKey) => {
-    closeItem(rowMap, rowKey);
-    const newData = [...listData];
-    const prevIndex = listData.findIndex(item => item.key === rowKey);
-    newData.splice(prevIndex, 1);
-    setListData(newData);
+  const handelCompleted = item => {
+    // console.log(item);
+    dispatch(completeTask(item));
   };
-
-  const onItemOpen = rowKey => {
-    console.log('This row opened', rowKey);
+  const handelRemovePriority = item => {
+    // console.log(item);
+    dispatch(removePriority(item));
   };
 
   const renderItem = item => (
@@ -40,79 +38,45 @@ export default function PriorityTaskList() {
       onPress={() => console.log('You touched me')}
       style={styles.rowFront}
       underlayColor={'#fff'}
-      activeOpacity={0.9}>
+      activeOpacity={0.92}>
       <View
         style={{
           flexDirection: 'row',
           justifyContent: 'space-between',
         }}>
-        <Text
-          style={{
-            fontSize: 12,
-            fontWeight: '500',
-            color: 'black',
-            borderWidth: 1,
-            borderRadius: 3,
-            padding: 3,
-            marginLeft: 5,
-            marginTop: 5,
-            color: 'white',
-            // marginBottom: 10,
-
-            backgroundColor: '#FF1E1E',
-          }}>
-          {item.item.status}
-        </Text>
-        <Text style={styles.taskDateTime}>{item.item.dateTime}</Text>
+        <View>
+          <Text style={styles.tasktitle} numberOfLines={1}>
+            {item.item.title}
+          </Text>
+          <Text style={styles.taskDateTime}>{item.item.date}</Text>
+        </View>
+        <Text style={styles.priorBtn}>prior</Text>
       </View>
       <View>
-        <View style={{flexDirection: 'row', alignItems: 'center'}}>
-          <Text
-            style={{
-              fontSize: 14,
-              fontWeight: '500',
-              color: 'black',
-              left: 5,
-            }}>
-            Title:
-          </Text>
-          <Text style={styles.tasktitle}>{item.item.title}</Text>
-        </View>
+        <View style={{flexDirection: 'row', alignItems: 'center'}}></View>
       </View>
       <View style={{flexDirection: 'row', alignItems: 'center'}}>
-        <Text
-          style={{
-            fontSize: 14,
-            fontWeight: '500',
-            color: 'black',
-            left: 5,
-            // marginBottom: 10,
-          }}>
-          Description:
-        </Text>
         <Text style={styles.taskdescription}>{item.item.description}</Text>
       </View>
     </TouchableOpacity>
   );
 
-  const renderHiddenItem = (data, rowMap) => (
+  const renderHiddenItem = item => (
     <View style={styles.rowBack}>
       <TouchableOpacity
         style={[styles.actionButton, styles.completeBtn]}
-        onPress={() => closeItem(rowMap, data.item.key)}>
+        onPress={() => handelCompleted(item.item.id)}>
         <Text style={styles.btnText}>Completed</Text>
       </TouchableOpacity>
       <TouchableOpacity
         style={[styles.actionButton, styles.closeBtn]}
-        onPress={() => closeItem(rowMap, data.item.key)}>
+        onPress={() => handelRemovePriority(item.item.id)}>
         <Text style={styles.btnText}>Remove</Text>
-        <Text style={styles.btnText}>from</Text>
-
         <Text style={styles.btnText}>Priority</Text>
       </TouchableOpacity>
       <TouchableOpacity
         style={[styles.actionButton, styles.deleteBtn]}
-        onPress={() => deleteItem(rowMap, data.item.key)}>
+        onPress={() => handelDeleteItem(item.item.id)}>
         <Text style={styles.btnText}>Delete</Text>
       </TouchableOpacity>
     </View>
@@ -135,17 +99,23 @@ export default function PriorityTaskList() {
             <Text>No priority added yet.</Text>
           </View>
         ) : (
-          <SwipeListView
-            data={priorTaskList}
-            renderItem={renderItem}
-            renderHiddenItem={renderHiddenItem}
-            leftOpenValue={75}
-            rightOpenValue={-150}
-            previewRowKey={'0'}
-            previewOpenValue={-40}
-            previewOpenDelay={3000}
-            onRowDidOpen={onItemOpen}
-          />
+          <View
+            style={{
+              backgroundColor: '#ee6c4d',
+              flex: 1,
+              padding: 10,
+            }}>
+            <SwipeListView
+              data={priorTaskList}
+              renderItem={renderItem}
+              renderHiddenItem={renderHiddenItem}
+              leftOpenValue={75}
+              rightOpenValue={-150}
+              previewRowKey={'0'}
+              previewOpenValue={-40}
+              previewOpenDelay={3000}
+            />
+          </View>
         )}
       </View>
     </View>
@@ -160,7 +130,7 @@ const styles = StyleSheet.create({
   },
   headerCon: {
     height: 50,
-    // backgroundColor: 'green',
+    backgroundColor: '#ee6c4d',
     marginBottom: 10,
     justifyContent: 'center',
     alignItems: 'center',
@@ -168,7 +138,7 @@ const styles = StyleSheet.create({
   headerText: {
     fontSize: 25,
     fontWeight: '800',
-    color: 'black',
+    color: 'white',
   },
   listCon: {
     height: 600,
@@ -185,8 +155,8 @@ const styles = StyleSheet.create({
   rowFront: {
     backgroundColor: '#CCC',
     borderBottomColor: 'black',
-    borderWidth: 0.5,
-    height: 150,
+    borderWidth: 1,
+    // height: 150,
     marginBottom: 10,
     marginTop: 5,
     borderRadius: 10,
@@ -195,12 +165,11 @@ const styles = StyleSheet.create({
     marginTop: 5,
     marginBottom: 10,
     alignItems: 'center',
-    backgroundColor: '#DDD',
-    flex: 1,
+    // flex: 1,
     flexDirection: 'row',
     justifyContent: 'space-between',
     paddingLeft: 5,
-    height: 80,
+    height: 40,
   },
   actionButton: {
     alignItems: 'center',
@@ -222,20 +191,20 @@ const styles = StyleSheet.create({
   },
   completeBtn: {
     backgroundColor: 'green',
-    right: 264,
+    right: 247,
     borderRadius: 10,
 
     // left: -500,
   },
   taskDateTime: {
     fontWeight: '500',
-    color: 'black',
+    // color: 'black',
     fontSize: 12,
-    marginRight: 5,
+    // marginRight: 5,
     alignSelf: 'flex-start',
     // top: -25,
-    // left: 8,
-    marginTop: 8,
+    left: 8,
+    // marginTop: 8,
   },
   heading: {
     fontSize: 18,
@@ -247,16 +216,30 @@ const styles = StyleSheet.create({
   tasktitle: {
     fontWeight: '500',
     color: 'black',
-    fontSize: 14,
+    fontSize: 20,
     left: 7,
+    width: 240,
     // top: -30,
     // left: -80,
   },
   taskdescription: {
-    fontWeight: '500',
+    fontWeight: '300',
     color: 'black',
     fontSize: 14,
-    // top: -30,
-    left: 5,
+    left: 8,
+    marginBottom: 5,
+  },
+  priorBtn: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: 'black',
+    borderWidth: 1,
+    borderRadius: 3,
+    padding: 2,
+    color: 'white',
+    right: 10,
+    top: 5,
+    height: 25,
+    backgroundColor: '#FF1E1E',
   },
 });

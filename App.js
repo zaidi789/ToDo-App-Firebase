@@ -1,15 +1,16 @@
 import {StyleSheet, Text, View} from 'react-native';
 import React from 'react';
 import Nav from './src/Navigation';
-import {store} from './src/Redux/Store';
 import {Provider} from 'react-redux';
+import {PersistGate} from 'redux-persist/integration/react';
+import {persistor, store} from './src/Redux/Store';
 
 export default function App() {
   return (
     <Provider store={store}>
-      <Nav />
+      <PersistGate persistor={persistor}>
+        <Nav />
+      </PersistGate>
     </Provider>
   );
 }
-
-const styles = StyleSheet.create({});

@@ -1,11 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import {
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  TouchableHighlight,
-  View,
-} from 'react-native';
+import {StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import {SwipeListView} from 'react-native-swipe-list-view';
 import {useSelector, useDispatch} from 'react-redux';
 import {unarchiveTask} from '../Redux/TaskSlice';
@@ -19,22 +13,7 @@ export default function ArchieveList() {
     setArchiveTask(archiveTasks);
   }, [allTasks]);
 
-  const closeItem = (item, id) => {
-    if (item[id]) {
-      item[id].closeRow();
-    }
-  };
-
-  const deleteItem = (rowMap, rowKey) => {
-    closeItem(rowMap, rowKey);
-    const newData = [...listData];
-    const prevIndex = listData.findIndex(item => item.key === rowKey);
-    newData.splice(prevIndex, 1);
-    setListData(newData);
-  };
-
-  const handelUnArchive = (item, idx) => {
-    closeItem(item, idx);
+  const handelUnArchive = item => {
     // console.log(item.id);
     dispatch(unarchiveTask(item.id));
   };
@@ -49,48 +28,27 @@ export default function ArchieveList() {
           flexDirection: 'row',
           justifyContent: 'space-between',
         }}>
-        <Text
-          style={{
-            fontSize: 12,
-            fontWeight: '500',
-            color: 'black',
-            borderWidth: 1,
-            borderRadius: 3,
-            padding: 3,
-            marginLeft: 5,
-            marginTop: 5,
-            // marginBottom: 10,
-            backgroundColor: 'green',
-          }}>
-          {item.item.status}
-        </Text>
-        <Text style={styles.taskDateTime}>{item.item.dateTime}</Text>
+        <View>
+          <Text style={styles.tasktitle} numberOfLines={1}>
+            {item.item.title}
+          </Text>
+          <Text style={styles.taskDateTime}>{item.item.date}</Text>
+        </View>
+
+        {item.item.priority === true ? (
+          <Text style={[styles.prioritybtn, {backgroundColor: 'tomato'}]}>
+            priority
+          </Text>
+        ) : item.item.completed ? (
+          <Text style={[styles.prioritybtn, {backgroundColor: 'green'}]}>
+            completed
+          </Text>
+        ) : null}
       </View>
       <View>
-        <View style={{flexDirection: 'row', alignItems: 'center'}}>
-          <Text
-            style={{
-              fontSize: 14,
-              fontWeight: '500',
-              color: 'black',
-              left: 5,
-            }}>
-            Title:
-          </Text>
-          <Text style={styles.tasktitle}>{item.item.title}</Text>
-        </View>
+        <View style={{flexDirection: 'row', alignItems: 'center'}}></View>
       </View>
       <View style={{flexDirection: 'row', alignItems: 'center'}}>
-        <Text
-          style={{
-            fontSize: 14,
-            fontWeight: '500',
-            color: 'black',
-            left: 5,
-            // marginBottom: 10,
-          }}>
-          Description:
-        </Text>
         <Text style={styles.taskdescription}>{item.item.description}</Text>
       </View>
     </TouchableOpacity>
@@ -109,7 +67,7 @@ export default function ArchieveList() {
   return (
     <View style={styles.container}>
       <View style={styles.headerCon}>
-        <Text style={styles.headerText}>Archieve Tasks</Text>
+        <Text style={styles.headerText}>Archived Tasks</Text>
       </View>
       <View style={styles.listCon}>
         {archiveTask.length === 0 ? (
@@ -123,17 +81,23 @@ export default function ArchieveList() {
             <Text>No Archive added yet.</Text>
           </View>
         ) : (
-          <SwipeListView
-            data={archiveTask}
-            renderItem={renderItem}
-            renderHiddenItem={renderHiddenItem}
-            leftOpenValue={75}
-            rightOpenValue={-150}
-            previewRowKey={'0'}
-            previewOpenValue={-40}
-            previewOpenDelay={3000}
-            onRowDidOpen={onItemOpen}
-          />
+          <View
+            style={{
+              backgroundColor: '#dad7cd',
+              flex: 1,
+              padding: 10,
+            }}>
+            <SwipeListView
+              data={archiveTask}
+              renderItem={renderItem}
+              renderHiddenItem={renderHiddenItem}
+              leftOpenValue={0}
+              rightOpenValue={-75}
+              previewRowKey={'0'}
+              previewOpenValue={-40}
+              previewOpenDelay={3000}
+            />
+          </View>
         )}
       </View>
     </View>
@@ -148,7 +112,7 @@ const styles = StyleSheet.create({
   },
   headerCon: {
     height: 50,
-    // backgroundColor: 'green',
+    backgroundColor: '#ced4da',
     marginBottom: 10,
     justifyContent: 'center',
     alignItems: 'center',
@@ -162,6 +126,7 @@ const styles = StyleSheet.create({
     height: 600,
     // backgroundColor: 'yellow',
     marginBottom: 10,
+    backgroundColor: '#cce3de',
   },
   list: {
     color: '#FFF',
@@ -173,8 +138,8 @@ const styles = StyleSheet.create({
   rowFront: {
     backgroundColor: '#CCC',
     borderBottomColor: 'black',
-    borderWidth: 0.5,
-    height: 150,
+    borderWidth: 1,
+    // height: 150,
     marginBottom: 10,
     marginTop: 5,
     borderRadius: 10,
@@ -182,26 +147,29 @@ const styles = StyleSheet.create({
   rowBack: {
     marginTop: 5,
     marginBottom: 10,
-    alignItems: 'center',
-    backgroundColor: '#DDD',
-    flex: 1,
+    // alignItems: 'center',
+    backgroundColor: '#dad7cd',
+    // flex: 1,
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    // justifyContent: 'center',
+
     paddingLeft: 5,
-    height: 80,
+    height: 50,
+    // justifyContent: 'center',
   },
   actionButton: {
     alignItems: 'center',
     bottom: 0,
     justifyContent: 'center',
+    alignSelf: 'center',
     position: 'absolute',
-    top: 0,
+    top: 5,
     width: 75,
   },
-  closeBtn: {
-    backgroundColor: 'blue',
-    right: 75,
-  },
+  // closeBtn: {
+  //   backgroundColor: 'blue',
+  //   right: 75,
+  // },
   deleteBtn: {
     backgroundColor: 'blue',
     right: 0,
@@ -214,13 +182,13 @@ const styles = StyleSheet.create({
   },
   taskDateTime: {
     fontWeight: '500',
-    color: 'black',
+    // color: 'black',
     fontSize: 12,
-    marginRight: 5,
+    // marginRight: 5,
     alignSelf: 'flex-start',
     // top: -25,
-    // left: 8,
-    marginTop: 8,
+    left: 8,
+    marginTop: 5,
   },
   heading: {
     fontSize: 18,
@@ -232,16 +200,44 @@ const styles = StyleSheet.create({
   tasktitle: {
     fontWeight: '500',
     color: 'black',
-    fontSize: 14,
+    fontSize: 20,
     left: 7,
-    // top: -30,
+    top: 5,
+    width: 240,
     // left: -80,
   },
   taskdescription: {
-    fontWeight: '500',
+    fontWeight: '300',
     color: 'black',
     fontSize: 14,
     // top: -30,
     left: 5,
+    marginBottom: 5,
+  },
+  prioritybtn: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: 'black',
+    borderWidth: 1,
+    borderRadius: 3,
+    padding: 2,
+    color: 'white',
+    right: 10,
+    top: 5,
+    height: 25,
+    backgroundColor: '#FF1E1E',
+  },
+  completedBtn: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: 'black',
+    borderWidth: 1,
+    borderRadius: 3,
+    padding: 2,
+    color: 'white',
+    right: 10,
+    top: 5,
+    height: 25,
+    backgroundColor: '#FF1E1E',
   },
 });

@@ -18,19 +18,9 @@ export default function CompletedTaskList() {
     setCompletedTasks(completeTasks);
   }, [allTasks]);
 
-  const closeItem = (rowMap, rowKey) => {
-    if (rowMap[rowKey]) {
-      rowMap[rowKey].closeRow();
-    }
-  };
-
   const handelDelete = id => {
-    console.log(id);
-    // dispatch(deleteTask(id));
-  };
-
-  const onItemOpen = rowKey => {
-    console.log('This row opened', rowKey);
+    // console.log(id);
+    dispatch(deleteTask(id));
   };
 
   const renderItem = item => (
@@ -43,48 +33,19 @@ export default function CompletedTaskList() {
           flexDirection: 'row',
           justifyContent: 'space-between',
         }}>
-        <Text
-          style={{
-            fontSize: 12,
-            fontWeight: '500',
-            color: 'black',
-            borderWidth: 1,
-            borderRadius: 3,
-            padding: 3,
-            marginLeft: 5,
-            marginTop: 5,
-            // marginBottom: 10,
-            backgroundColor: 'green',
-          }}>
-          {item.item.status}
-        </Text>
-        <Text style={styles.taskDateTime}>{item.item.dateTime}</Text>
+        <View>
+          <Text style={styles.tasktitle} numberOfLines={1}>
+            {item.item.title}
+          </Text>
+          <Text style={styles.taskDateTime}>{item.item.date}</Text>
+        </View>
+
+        <Text style={styles.completeBtn}>completed</Text>
       </View>
       <View>
-        <View style={{flexDirection: 'row', alignItems: 'center'}}>
-          <Text
-            style={{
-              fontSize: 14,
-              fontWeight: '500',
-              color: 'black',
-              left: 5,
-            }}>
-            Title:
-          </Text>
-          <Text style={styles.tasktitle}>{item.item.title}</Text>
-        </View>
+        <View style={{flexDirection: 'row', alignItems: 'center'}}></View>
       </View>
       <View style={{flexDirection: 'row', alignItems: 'center'}}>
-        <Text
-          style={{
-            fontSize: 14,
-            fontWeight: '500',
-            color: 'black',
-            left: 5,
-            // marginBottom: 10,
-          }}>
-          Description:
-        </Text>
         <Text style={styles.taskdescription}>{item.item.description}</Text>
       </View>
     </TouchableOpacity>
@@ -107,27 +68,27 @@ export default function CompletedTaskList() {
       </View>
       <View style={styles.listCon}>
         {completedTasks.length === 0 ? (
-          <View
-            style={{
-              flex: 1,
-              alignItems: 'center',
-              justifyContent: 'center',
-              backgroundColor: '#99d98c',
-            }}>
+          <View style={styles.noContent}>
             <Text>No Completed added yet.</Text>
           </View>
         ) : (
-          <SwipeListView
-            data={completedTasks}
-            renderItem={renderItem}
-            renderHiddenItem={renderHiddenItem}
-            leftOpenValue={75}
-            rightOpenValue={-150}
-            previewRowKey={'0'}
-            previewOpenValue={-40}
-            previewOpenDelay={3000}
-            onRowDidOpen={onItemOpen}
-          />
+          <View
+            style={{
+              backgroundColor: '#99d98c',
+              flex: 1,
+              padding: 10,
+            }}>
+            <SwipeListView
+              data={completedTasks}
+              renderItem={renderItem}
+              renderHiddenItem={renderHiddenItem}
+              leftOpenValue={0}
+              rightOpenValue={-75}
+              previewRowKey={'0'}
+              previewOpenValue={-40}
+              previewOpenDelay={3000}
+            />
+          </View>
         )}
       </View>
     </View>
@@ -142,7 +103,7 @@ const styles = StyleSheet.create({
   },
   headerCon: {
     height: 50,
-    // backgroundColor: 'green',
+    backgroundColor: '#43aa8b',
     marginBottom: 10,
     justifyContent: 'center',
     alignItems: 'center',
@@ -150,7 +111,7 @@ const styles = StyleSheet.create({
   headerText: {
     fontSize: 25,
     fontWeight: '800',
-    color: 'black',
+    color: 'white',
   },
   listCon: {
     height: 600,
@@ -168,7 +129,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#CCC',
     borderBottomColor: 'black',
     borderWidth: 0.5,
-    height: 150,
+    // height: 150,
     marginBottom: 10,
     marginTop: 5,
     borderRadius: 10,
@@ -177,12 +138,12 @@ const styles = StyleSheet.create({
     marginTop: 5,
     marginBottom: 10,
     alignItems: 'center',
-    backgroundColor: '#DDD',
-    flex: 1,
+    // flex: 1,
     flexDirection: 'row',
     justifyContent: 'space-between',
     paddingLeft: 5,
-    height: 80,
+    height: 40,
+    backgroundColor: '#99d98c',
   },
   actionButton: {
     alignItems: 'center',
@@ -198,8 +159,9 @@ const styles = StyleSheet.create({
   },
   deleteBtn: {
     backgroundColor: 'red',
-    right: 0,
+    right: 1,
     borderRadius: 10,
+    borderWidth: 0.5,
   },
   completeBtn: {
     backgroundColor: 'green',
@@ -208,13 +170,13 @@ const styles = StyleSheet.create({
   },
   taskDateTime: {
     fontWeight: '500',
-    color: 'black',
+    // color: 'black',
     fontSize: 12,
-    marginRight: 5,
+    // marginRight: 5,
     alignSelf: 'flex-start',
     // top: -25,
-    // left: 8,
-    marginTop: 8,
+    left: 8,
+    // marginTop: 8,
   },
   heading: {
     fontSize: 18,
@@ -226,16 +188,38 @@ const styles = StyleSheet.create({
   tasktitle: {
     fontWeight: '500',
     color: 'black',
-    fontSize: 14,
-    left: 7,
-    // top: -30,
+    fontSize: 20,
+    left: 10,
+    top: 5,
+    width: 230,
+    // marginRight: 5,
     // left: -80,
   },
   taskdescription: {
-    fontWeight: '500',
+    fontWeight: '300',
     color: 'black',
     fontSize: 14,
     // top: -30,
     left: 5,
+    marginBottom: 5,
+  },
+  completeBtn: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: 'black',
+    borderWidth: 1,
+    borderRadius: 3,
+    padding: 3,
+    marginTop: 5,
+    color: 'white',
+    height: 25,
+    marginRight: 10,
+    backgroundColor: 'green',
+  },
+  noContent: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#99d98c',
   },
 });
