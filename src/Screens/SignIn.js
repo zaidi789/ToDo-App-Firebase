@@ -5,12 +5,14 @@ import {
   View,
   Image,
   TouchableOpacity,
+  Alert,
 } from 'react-native';
 import React, {useState} from 'react';
 import SourceImages from '../Images/SourceImages';
 import CustomTextInput from '../Components/CustomTextInput';
 import Button from '../Components/Button';
 import {useNavigation} from '@react-navigation/native';
+import auth from '@react-native-firebase/auth';
 
 export default function SignIn() {
   const navigation = useNavigation();
@@ -30,7 +32,17 @@ export default function SignIn() {
       setEmailErrorText('');
       setPasswordErrorText('Please enter your password');
     } else {
-      console.log('email', email, 'password', password);
+      // console.log('email', email, 'password', password);
+      try {
+        auth()
+          .signInWithEmailAndPassword(email, password)
+          .then(() => {
+            alert('Login Sucessfull');
+            navigation.navigate('HomeTabs');
+          });
+      } catch (error) {
+        console.log(error);
+      }
       setEmail('');
       setPassword('');
       setEmailErrorText('');
@@ -75,7 +87,7 @@ export default function SignIn() {
           btnStyles={styles.button}
           btnTextStyles={styles.btntext}
           onPress={() => {
-            navigation.navigate('HomeTabs');
+            handleSignIn();
           }}
         />
       </View>

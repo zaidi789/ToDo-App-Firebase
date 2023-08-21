@@ -5,12 +5,14 @@ import {
   View,
   Image,
   TouchableOpacity,
+  Alert,
 } from 'react-native';
 import React, {useState} from 'react';
 import SourceImages from '../Images/SourceImages';
 import CustomTextInput from '../Components/CustomTextInput';
 import Button from '../Components/Button';
 import {useNavigation} from '@react-navigation/native';
+import auth from '@react-native-firebase/auth';
 
 export default function Signup() {
   const navigation = useNavigation();
@@ -23,7 +25,7 @@ export default function Signup() {
   const [passwordErrorText, setPasswordErrorText] = useState('');
   const [confirmPasswordErrorText, setConfirmPasswordErrorText] = useState('');
 
-  const handleSignUp = () => {
+  const handleSignUp = async => {
     let hasErrors = false;
 
     if (username === '') {
@@ -58,6 +60,28 @@ export default function Signup() {
     }
 
     if (!hasErrors) {
+      try {
+        auth()
+          .createUserWithEmailAndPassword(email, password)
+          .then(user => {
+            alert('sucessfully registered');
+          })
+          .catch(error => {
+            if (error.code === 'auth/email-already-in-use') {
+              console.log('That email address is already in use!');
+            }
+
+            if (error.code === 'auth/invalid-email') {
+              console.log('That email address is invalid!');
+            }
+
+            console.error(error);
+          });
+      } catch {
+        error => {
+          console.log(error);
+        };
+      }
       console.log('email', email, 'password', password);
       setUsername('');
       setEmail('');
