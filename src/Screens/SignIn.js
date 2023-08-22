@@ -7,19 +7,26 @@ import {
   TouchableOpacity,
   Alert,
 } from 'react-native';
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import SourceImages from '../Images/SourceImages';
 import CustomTextInput from '../Components/CustomTextInput';
 import Button from '../Components/Button';
 import {useNavigation} from '@react-navigation/native';
 import auth from '@react-native-firebase/auth';
+import firestore from '@react-native-firebase/firestore';
+import {useDispatch} from 'react-redux';
+import {setUser} from '../Redux/UserSlice';
+import Loader from '../Components/Loader';
 
 export default function SignIn() {
+  const userId = auth()?.currentUser?.uid;
+  const dispatch = useDispatch();
   const navigation = useNavigation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [emailErrorText, setEmailErrorText] = useState('');
   const [passwordErrorText, setPasswordErrorText] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSignIn = () => {
     if (email === '' && password === '') {
@@ -33,12 +40,19 @@ export default function SignIn() {
       setPasswordErrorText('Please enter your password');
     } else {
       // console.log('email', email, 'password', password);
+      setIsLoading(true);
       try {
         auth()
           .signInWithEmailAndPassword(email, password)
           .then(() => {
-            alert('Login Sucessfull');
+            setIsLoading(false);
+            console.log('Login Sucessfull');
+            dispatch(setUser((isLoggedIn = true)));
             navigation.navigate('HomeTabs');
+          })
+          .catch(() => {
+            setIsLoading(false);
+            alert('invalid-email / wrong-password ');
           });
       } catch (error) {
         console.log(error);
@@ -49,8 +63,10 @@ export default function SignIn() {
       setPasswordErrorText('');
     }
   };
+
   return (
     <ScrollView style={styles.container}>
+      <Loader modalVisible={isLoading} />
       <View style={styles.logoCon}>
         <Image style={styles.logo} source={SourceImages.Logo} />
         <View style={styles.welcomeCon}>
@@ -79,7 +95,9 @@ export default function SignIn() {
           errorText={passwordErrorText}
           // errorText={'Please Enter your Password'}
         />
-        <TouchableOpacity style={styles.forgetTextCon}>
+        <TouchableOpacity
+          style={styles.forgetTextCon}
+          onPress={() => navigation.navigate('ForgetPassword')}>
           <Text style={styles.forgetText}>Forget Password ?</Text>
         </TouchableOpacity>
         <Button

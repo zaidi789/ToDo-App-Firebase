@@ -7,16 +7,28 @@ import {
   FlatList,
   ScrollView,
   TouchableOpacity,
+  Alert,
 } from 'react-native';
 import SourceImages from '../Images/SourceImages';
 import {Calendar} from 'react-native-calendars'; // Import Calendar
 import {useNavigation} from '@react-navigation/native';
 import FloatingButton from '../Components/FlatingButton';
 import AddTask from '../Components/AddTask';
-import {useSelector} from 'react-redux';
+import {useSelector, useDispatch} from 'react-redux';
+import auth from '@react-native-firebase/auth';
+import firestore from '@react-native-firebase/firestore';
+import {clearUser, setUser} from '../Redux/UserSlice';
+import {addTask, onLogOut} from '../Redux/TaskSlice';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import Loader from '../Components/Loader';
 
 export default function Home() {
-  const reduxtasks = useSelector(state => state.allTasks);
+  const userId = auth()?.currentUser?.uid;
+  const reduxtasks = useSelector(state => state?.allTasks);
+  const user = useSelector(state => state?.user);
+  const dispatch = useDispatch();
+  console.log('---------', reduxtasks);
+
   const username = 'Sara';
   const navigation = useNavigation();
   const [taskState, setTaskState] = useState([reduxtasks]);
@@ -25,6 +37,98 @@ export default function Home() {
   const [priorTasks, setPriorTasks] = useState([]);
   const [filteredTasks, setFilteredTasks] = useState([]);
   const [editingTask, setEditingTask] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const isLoggedIn = useSelector(state => state.user.isLoggedIn);
+  /////////////////////////////////////////////////////////////////
+  // useEffect(() => {
+  //   try {
+  //     firestore()
+  //       .collection('Users')
+  //       .doc(userId)
+  //       .collection('UserDetails')
+  //       .doc(userId)
+  //       .get()
+  //       .then(querySnapshot => {
+  //         if (!querySnapshot.empty) {
+  //           // Check if the document exists
+  //           const username = querySnapshot.data().username;
+
+  //           // console.log('username--->', username);
+  //           // Dispatch action to update Redux state
+  //           dispatch(setUser(username));
+  //         }
+  //       })
+  //       .catch(error => {
+  //         console.log('Error getting document:', error);
+  //       });
+  //   } catch (error) {
+  //     console.log(error);
+  //   }
+  // }, []);
+  // useEffect(() => {
+  //   if (isLoggedIn) {
+  //     setIsLoading(true);
+  //     const unsubscribe = firestore()
+  //       .collection('Users')
+  //       .doc(userId)
+  //       .collection('ToDos')
+  //       .onSnapshot(snapshot => {
+  //         const tasks = [];
+  //         setIsLoading(false);
+  //         snapshot.forEach(doc => {
+  //           tasks.push({...doc.data(), id: doc.id});
+  //         });
+
+  //         // Flatten the array of arrays into a single array of objects
+  //         const flattenedTasks = tasks.flatMap(taskArray => taskArray);
+
+  //         // Create a Set to keep track of added task IDs
+  //         const addedTaskIds = new Set();
+
+  //         // Dispatch the flattened array of objects
+  //         for (const obj of flattenedTasks) {
+  //           if (!addedTaskIds.has(obj.id)) {
+  //             dispatch(addTask(obj));
+  //             addedTaskIds.add(obj.id); // Add the task ID to the set
+  //           }
+  //         }
+
+  //         // Unsubscribe when tasks are fetched and dispatched
+  //         unsubscribe();
+
+  //         // Loop through the flattenedTasks array
+  //         // const loopThroughTasks = async () => {
+  //         //   for (const obj of flattenedTasks) {
+  //         //     if (!addedTaskIds.has(obj.id)) {
+
+  //         //       addedTaskIds.add(obj.id);
+
+  //         //       await new Promise(resolve => setTimeout(resolve, 1000)); // Delay of 1 second
+  //         //     }
+  //         //   }
+  //         // };
+  //         // loopThroughTasks();
+  //       });
+
+  //     return () => {
+  //       unsubscribe();
+  //     };
+  //   }
+  // }, [isLoggedIn, dispatch]);
+  ////////////////////////////////////////////////////
+  useEffect(() => {
+    const filteredPriorTasks = reduxtasks.filter(
+      item => item.priority === true,
+    );
+    const filteredTodayTasks = reduxtasks.filter(
+      item => item.date === formattedDateForTask,
+    );
+    // console.log(filteredTodayTasks);
+
+    setPriorTasks(filteredPriorTasks);
+    setTodayTasks(filteredTodayTasks);
+  }, [reduxtasks]);
   // console.log('Today tsaks ------', todayTask);
   const currentDate = new Date();
   const [selectedDate, setSelectedDate] = useState(currentDate);
@@ -43,7 +147,27 @@ export default function Home() {
   const [formattedDateForTask, setFormattedDateForTask] = useState(
     formatSelectedDate(new Date()),
   );
-  // console.log(reduxtasks);
+  const handelSignOut = () => {
+    Alert.alert('Logout', 'Are You Sure!', [
+      {
+        text: 'No',
+        onPress: () => console.log('Cancel Pressed'),
+        style: 'cancel',
+      },
+      {
+        text: 'Yes',
+        onPress: () => {
+          try {
+            auth().signOut();
+            dispatch(clearUser());
+            dispatch(onLogOut());
+          } catch (error) {
+            console.error('Logout error:', error);
+          }
+        },
+      },
+    ]);
+  };
   useEffect(() => {
     const filteredPriorTasks = reduxtasks.filter(
       item => item.priority === true,
@@ -66,12 +190,10 @@ export default function Home() {
     const filteredTasks = reduxtasks.filter(
       task => task.date === formattedDate,
     );
-
     // console.log('filtered Tasks', filteredTasks);
     setFilteredTasks(filteredTasks);
   };
   // console.log('selected data Date----', filteredTasks[1].date);
-
   const showEditModal = task => {
     setIsVisible(true);
     setEditingTask(task);
@@ -111,8 +233,8 @@ export default function Home() {
 
   return (
     <View style={styles.container}>
+      <Loader modalVisible={isLoading} />
       <ScrollView>
-        {/* <AddTask setIsVisible={setIsVisible} isVisible={isVisible} /> */}
         <AddTask
           isVisible={isVisible}
           setIsVisible={setIsVisible}
@@ -121,8 +243,27 @@ export default function Home() {
         <View style={styles.headerCon}>
           <Image style={styles.userImage} source={SourceImages.User} />
           <View>
-            <Text style={styles.greeting}>Hello, {username}!</Text>
+            <Text style={styles.greeting}>Hello, {user?.username}!</Text>
             <Text style={styles.date}>{formattedDate}</Text>
+          </View>
+          <View>
+            <TouchableOpacity
+              style={{
+                right: 10,
+                bottom: 45,
+                borderWidth: 0.5,
+                borderRadius: 10,
+                padding: 3,
+                alignItems: 'center',
+                flexDirection: 'row',
+                backgroundColor: '#00afb9',
+              }}
+              onPress={() => {
+                handelSignOut();
+              }}>
+              <MaterialCommunityIcons name="logout" size={20} color="white" />
+              <Text style={{fontWeight: '500', color: 'white'}}>logout</Text>
+            </TouchableOpacity>
           </View>
         </View>
         <View style={{padding: 5, backgroundColor: '#ff99ac'}}>
@@ -293,14 +434,6 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: 'gray',
     fontSize: 8,
-    // top: -30,
-    // left: -20,
-  },
-  widgetsCon: {
-    // height: 300,
-    // width: '100%',
-    // backgroundColor: 'green',
-    // alignItems: 'center',
   },
   priorityTaskItem: {
     // alignItems: 'center',

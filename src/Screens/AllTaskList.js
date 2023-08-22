@@ -3,13 +3,11 @@ import {
   Text,
   TouchableOpacity,
   View,
-  ScrollView,
   FlatList,
   Modal,
 } from 'react-native';
 import React, {useState, useEffect} from 'react';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import Icon from 'react-native-vector-icons/Ionicons';
 import {useNavigation} from '@react-navigation/native';
 import {Calendar} from 'react-native-calendars';
 import {SwipeListView} from 'react-native-swipe-list-view';
@@ -17,8 +15,11 @@ import FloatingButton from '../Components/FlatingButton';
 import AddTask from '../Components/AddTask';
 import {useSelector, useDispatch} from 'react-redux';
 import {addArchive, completeTask, deleteTask} from '../Redux/TaskSlice';
+import auth from '@react-native-firebase/auth';
+import firestore from '@react-native-firebase/firestore';
 
 export default function AllTaskList() {
+  const userId = auth().currentUser.uid;
   const allTasks = useSelector(state => state.allTasks);
   // console.log(allTasks);
   const dispatch = useDispatch();
@@ -61,15 +62,6 @@ export default function AllTaskList() {
     // console.log(filteredTasks);
     setFilteredTasks(filteredTasks);
   };
-
-  // const formatSelectedDate = date => {
-  //   const day = String(date.getDate()).padStart(1, '0');
-  //   const month = String(date.getMonth() + 1).padStart(1, '0');
-  //   const year = date.getFullYear();
-  //   return `${day}-${month}-${year}`;
-  // };
-  // console.log(filteredTasks);
-
   const getRangeMarkedDates = (startDate, endDate) => {
     const rangeMarkedDates = {};
     const currentDate = new Date(startDate);
@@ -121,15 +113,54 @@ export default function AllTaskList() {
     </TouchableOpacity>
   );
   const handelComplete = id => {
-    dispatch(completeTask(id));
+    try {
+      firestore()
+        .collection('Users')
+        .doc(userId)
+        .collection('ToDos')
+        .doc(id)
+        .update({completed: true})
+        .then(data => {
+          alert('Goal completed sucessfully');
+        });
+      dispatch(completeTask(id));
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   const handelDelete = id => {
-    dispatch(deleteTask(id));
+    try {
+      firestore()
+        .collection('Users')
+        .doc(userId)
+        .collection('ToDos')
+        .doc(id)
+        .delete()
+        .then(() => {
+          alert('Task deleted!');
+        });
+      dispatch(deleteTask(id));
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   const handelArchive = id => {
-    dispatch(addArchive(id));
+    try {
+      firestore()
+        .collection('Users')
+        .doc(userId)
+        .collection('ToDos')
+        .doc(id)
+        .update({archive: true})
+        .then(data => {
+          alert('Arcived sucessfully');
+        });
+      dispatch(addArchive(id));
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   const renderShowItem = item => (

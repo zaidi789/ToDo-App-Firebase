@@ -13,6 +13,8 @@ import CustomTextInput from '../Components/CustomTextInput';
 import Button from '../Components/Button';
 import {useNavigation} from '@react-navigation/native';
 import auth from '@react-native-firebase/auth';
+import firestore from '@react-native-firebase/firestore';
+import Loader from '../Components/Loader';
 
 export default function Signup() {
   const navigation = useNavigation();
@@ -24,6 +26,7 @@ export default function Signup() {
   const [usernameErrorText, setUsernameErrorText] = useState('');
   const [passwordErrorText, setPasswordErrorText] = useState('');
   const [confirmPasswordErrorText, setConfirmPasswordErrorText] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSignUp = async => {
     let hasErrors = false;
@@ -60,10 +63,15 @@ export default function Signup() {
     }
 
     if (!hasErrors) {
+      setIsLoading(true);
       try {
         auth()
           .createUserWithEmailAndPassword(email, password)
           .then(user => {
+            const UserId = user.user.uid;
+            saveUserDetails(UserId);
+            setIsLoading(false);
+            navigation.navigate('SignIn');
             alert('sucessfully registered');
           })
           .catch(error => {
@@ -93,9 +101,18 @@ export default function Signup() {
       setConfirmPasswordErrorText('');
     }
   };
+  const saveUserDetails = uid => {
+    firestore()
+      .collection('Users')
+      .doc(uid)
+      .collection('UserDetails')
+      .doc(uid)
+      .set({username});
+  };
 
   return (
     <ScrollView style={styles.container}>
+      <Loader modalVisible={isLoading} />
       <View style={styles.logoCon}>
         <Image style={styles.logo} source={SourceImages.Logo} />
         <View style={styles.welcomeCon}>

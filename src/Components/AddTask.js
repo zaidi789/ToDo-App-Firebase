@@ -14,14 +14,17 @@ import Button from '../Components/Button';
 import uuid from 'react-native-uuid';
 import {useDispatch} from 'react-redux';
 import {addTask, editTask} from '../Redux/TaskSlice';
-
+import auth from '@react-native-firebase/auth';
+import firestore from '@react-native-firebase/firestore';
+import Loader from './Loader';
 export default function AddTask({isVisible, setIsVisible, editingTask}) {
+  const userId = auth()?.currentUser?.uid;
   const dispatch = useDispatch();
   const [taskTitle, setTaskTitle] = useState('');
   const [taskDescription, setTaskDescription] = useState('');
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
   const [priority, setPriority] = useState(false);
-  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [isLoading, setIsLoading] = useState(false);
   const showDatePicker = () => {
     setDatePickerVisibility(true);
   };
@@ -37,7 +40,7 @@ export default function AddTask({isVisible, setIsVisible, editingTask}) {
       setPriority(editingTask.priority);
     }
   }, [editingTask]);
-
+  // console.log(userId);
   const handleConfirmDate = date => {
     hideDatePicker();
     const newFormattedDate = formatSelectedDate(date);
@@ -67,7 +70,6 @@ export default function AddTask({isVisible, setIsVisible, editingTask}) {
     formatSelectedTime(new Date()),
   );
 
-  // console.log(formattedDate, formattedTime);
   const handleAddTask = () => {
     const task = {
       id: editingTask ? editingTask.id : uuid.v4(),
@@ -81,9 +83,38 @@ export default function AddTask({isVisible, setIsVisible, editingTask}) {
     };
 
     if (taskTitle && taskDescription) {
+      setIsLoading(true);
       if (editingTask) {
+        firestore()
+          .collection('Users')
+          .doc(userId)
+          .collection('ToDos')
+          .doc(task.id)
+          .update(task)
+          .then(data => {
+            setIsLoading(false);
+            alert('updated sucessfully');
+            console.log('updated sucessfully!');
+          });
         dispatch(editTask(task));
       } else {
+        setIsLoading(true);
+        try {
+          firestore()
+            .collection('Users')
+            .doc(userId)
+            .collection('ToDos')
+            .doc(task.id) // now can add task using same id which is task property
+            .set(task)
+            .then(() => {
+              setIsLoading(false);
+              alert('Task added sucessfully!');
+
+              console.log('task sucessfully added to firebase');
+            });
+        } catch (error) {
+          console.log(error);
+        }
         dispatch(addTask(task));
       }
       setTaskTitle('');
@@ -108,6 +139,7 @@ export default function AddTask({isVisible, setIsVisible, editingTask}) {
         setIsVisible(false);
       }}>
       <View style={styles.centeredView}>
+        <Loader modalVisible={isLoading} />
         <View style={styles.modalView}>
           <TouchableOpacity
             style={styles.closeButton}
@@ -174,7 +206,7 @@ export default function AddTask({isVisible, setIsVisible, editingTask}) {
           </View>
           <Button
             ButtonName={editingTask ? 'Update' : 'Add-Task'}
-            onPress={handleAddTask}
+            onPress={() => handleAddTask()}
             btnStyles={styles.addTaskButton}
             btnTextStyles={styles.addTaskButtonText}
           />

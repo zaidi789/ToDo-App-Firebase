@@ -1,15 +1,13 @@
 import React, {useEffect, useState} from 'react';
-import {
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  TouchableHighlight,
-  View,
-} from 'react-native';
+import {StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import {SwipeListView} from 'react-native-swipe-list-view';
 import {useSelector, useDispatch} from 'react-redux';
 import {deleteTask} from '../Redux/TaskSlice';
+import auth from '@react-native-firebase/auth';
+import firestore from '@react-native-firebase/firestore';
+
 export default function CompletedTaskList() {
+  const userId = auth().currentUser.uid;
   const allTasks = useSelector(state => state.allTasks);
   const dispatch = useDispatch();
   const [completedTasks, setCompletedTasks] = useState([]);
@@ -19,8 +17,20 @@ export default function CompletedTaskList() {
   }, [allTasks]);
 
   const handelDelete = id => {
-    // console.log(id);
-    dispatch(deleteTask(id));
+    try {
+      firestore()
+        .collection('Users')
+        .doc(userId)
+        .collection('ToDos')
+        .doc(id)
+        .delete()
+        .then(() => {
+          alert('Task deleted!');
+        });
+      dispatch(deleteTask(id));
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   const renderItem = item => (
@@ -74,7 +84,7 @@ export default function CompletedTaskList() {
         ) : (
           <View
             style={{
-              backgroundColor: '#99d98c',
+              backgroundColor: '#edf6f9',
               flex: 1,
               padding: 10,
             }}>
@@ -143,7 +153,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingLeft: 5,
     height: 40,
-    backgroundColor: '#99d98c',
+    backgroundColor: '#edf6f9',
   },
   actionButton: {
     alignItems: 'center',

@@ -20,6 +20,7 @@ const CustomTextInput = props => {
     isUserName,
     onChangeText,
     value,
+    labelStyle,
     isEmail,
     ...restOfProps
   } = props;
@@ -98,6 +99,7 @@ const CustomTextInput = props => {
         <View
           style={[
             styles.labelContainer,
+            labelStyle,
             {top: isFocused ? -8.5 : 15, left: isFocused ? 40 : 40},
           ]}>
           <Text

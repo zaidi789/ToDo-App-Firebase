@@ -3,6 +3,7 @@ import TaskSlice from './TaskSlice';
 import {combineReducers} from 'redux';
 import {persistStore, persistReducer} from 'redux-persist';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import UserSlice from './UserSlice';
 
 const persistConfig = {
   key: 'root',
@@ -11,6 +12,7 @@ const persistConfig = {
 
 const rootReducer = combineReducers({
   allTasks: TaskSlice,
+  user: UserSlice,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

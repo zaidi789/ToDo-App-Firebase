@@ -3,8 +3,11 @@ import {StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import {SwipeListView} from 'react-native-swipe-list-view';
 import {useSelector, useDispatch} from 'react-redux';
 import {unarchiveTask} from '../Redux/TaskSlice';
+import auth from '@react-native-firebase/auth';
+import firestore from '@react-native-firebase/firestore';
 
 export default function ArchieveList() {
+  const userId = auth().currentUser.uid;
   const allTasks = useSelector(state => state.allTasks);
   const dispatch = useDispatch();
   const [archiveTask, setArchiveTask] = useState([]);
@@ -14,8 +17,20 @@ export default function ArchieveList() {
   }, [allTasks]);
 
   const handelUnArchive = item => {
-    // console.log(item.id);
-    dispatch(unarchiveTask(item.id));
+    try {
+      firestore()
+        .collection('Users')
+        .doc(userId)
+        .collection('ToDos')
+        .doc(item.id)
+        .update({completed: true})
+        .then(data => {
+          console.log('unarchive task sucessfully');
+        });
+      dispatch(unarchiveTask(item.id));
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   const renderItem = item => (
@@ -83,7 +98,7 @@ export default function ArchieveList() {
         ) : (
           <View
             style={{
-              backgroundColor: '#dad7cd',
+              backgroundColor: '#edf6f9',
               flex: 1,
               padding: 10,
             }}>
@@ -148,7 +163,7 @@ const styles = StyleSheet.create({
     marginTop: 5,
     marginBottom: 10,
     // alignItems: 'center',
-    backgroundColor: '#dad7cd',
+    backgroundColor: '#edf6f9',
     // flex: 1,
     flexDirection: 'row',
     // justifyContent: 'center',

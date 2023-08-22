@@ -12,6 +12,8 @@ import AllTaskList from '../Screens/AllTaskList';
 import CompletedTaskList from '../Screens/CompletedTaskList';
 import PriorityTaskList from '../Screens/PriorityTaskList';
 import ArchieveList from '../Screens/ArchieveList';
+import ForgetPassword from '../Screens/ForgetPassword';
+import {useSelector} from 'react-redux';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -95,29 +97,46 @@ function HomeTabs() {
 }
 
 export default function Nav() {
+  const loggedinData = useSelector(state => state.user);
+  // console.log(loggedinData.isLoggedIn);
+  const loggedin = loggedinData.isLoggedIn;
+  console.log(loggedin);
+
   return (
     <NavigationContainer>
       <Stack.Navigator>
-        <Stack.Screen
-          component={Start}
-          name="Start"
-          options={{headerShown: false}}
-        />
-        <Stack.Screen
-          component={SignIn}
-          name="SignIn"
-          options={{headerShown: false}}
-        />
-        <Stack.Screen
-          component={Signup}
-          name="Signup"
-          options={{headerShown: false}}
-        />
-        <Stack.Screen
-          component={HomeTabs}
-          name="HomeTabs"
-          options={{headerShown: false}}
-        />
+        {loggedin ? (
+          <>
+            <Stack.Screen
+              component={HomeTabs}
+              name="HomeTabs"
+              options={{headerShown: false}}
+            />
+          </>
+        ) : (
+          <>
+            <Stack.Screen
+              component={Start}
+              name="Start"
+              options={{headerShown: false}}
+            />
+            <Stack.Screen
+              component={SignIn}
+              name="SignIn"
+              options={{headerShown: false}}
+            />
+            <Stack.Screen
+              component={Signup}
+              name="Signup"
+              options={{headerShown: false}}
+            />
+            <Stack.Screen
+              component={ForgetPassword}
+              name="ForgetPassword"
+              options={{headerShown: false}}
+            />
+          </>
+        )}
       </Stack.Navigator>
     </NavigationContainer>
   );

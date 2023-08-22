@@ -1,16 +1,13 @@
 import React, {useEffect, useState} from 'react';
-import {
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  TouchableHighlight,
-  View,
-} from 'react-native';
+import {StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import {SwipeListView} from 'react-native-swipe-list-view';
 import {useSelector, useDispatch} from 'react-redux';
 import {completeTask, deleteTask, removePriority} from '../Redux/TaskSlice';
+import auth from '@react-native-firebase/auth';
+import firestore from '@react-native-firebase/firestore';
 
 export default function PriorityTaskList() {
+  const userId = auth().currentUser.uid;
   const dispatch = useDispatch();
   const allTasks = useSelector(state => state.allTasks);
   // console.log(allTasks);
@@ -20,17 +17,55 @@ export default function PriorityTaskList() {
     setPriorTaskList(PriorityTasks);
   }, [allTasks]);
 
-  const handelDeleteItem = item => {
-    // console.log(item);
-    dispatch(deleteTask(item));
+  const handelComplete = id => {
+    try {
+      firestore()
+        .collection('Users')
+        .doc(userId)
+        .collection('ToDos')
+        .doc(id)
+        .update({completed: true})
+        .then(data => {
+          alert('Goal completed sucessfully');
+        });
+      dispatch(completeTask(id));
+    } catch (error) {
+      console.log(error);
+    }
   };
-  const handelCompleted = item => {
-    // console.log(item);
-    dispatch(completeTask(item));
+
+  const handelDelete = id => {
+    try {
+      firestore()
+        .collection('Users')
+        .doc(userId)
+        .collection('ToDos')
+        .doc(id)
+        .delete()
+        .then(() => {
+          alert('User deleted!');
+        });
+      dispatch(deleteTask(id));
+    } catch (error) {
+      console.log(error);
+    }
   };
-  const handelRemovePriority = item => {
-    // console.log(item);
-    dispatch(removePriority(item));
+
+  const handelRemovePriority = id => {
+    try {
+      firestore()
+        .collection('Users')
+        .doc(userId)
+        .collection('ToDos')
+        .doc(id)
+        .update({priority: false})
+        .then(data => {
+          console.log('removed priority');
+        });
+      dispatch(removePriority(id));
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   const renderItem = item => (
@@ -65,7 +100,7 @@ export default function PriorityTaskList() {
     <View style={styles.rowBack}>
       <TouchableOpacity
         style={[styles.actionButton, styles.completeBtn]}
-        onPress={() => handelCompleted(item.item.id)}>
+        onPress={() => handelComplete(item.item.id)}>
         <Text style={styles.btnText}>Completed</Text>
       </TouchableOpacity>
       <TouchableOpacity
@@ -76,7 +111,7 @@ export default function PriorityTaskList() {
       </TouchableOpacity>
       <TouchableOpacity
         style={[styles.actionButton, styles.deleteBtn]}
-        onPress={() => handelDeleteItem(item.item.id)}>
+        onPress={() => handelDelete(item.item.id)}>
         <Text style={styles.btnText}>Delete</Text>
       </TouchableOpacity>
     </View>
@@ -101,7 +136,7 @@ export default function PriorityTaskList() {
         ) : (
           <View
             style={{
-              backgroundColor: '#ee6c4d',
+              backgroundColor: '#edf6f9',
               flex: 1,
               padding: 10,
             }}>
@@ -191,7 +226,7 @@ const styles = StyleSheet.create({
   },
   completeBtn: {
     backgroundColor: 'green',
-    right: 247,
+    right: 246,
     borderRadius: 10,
 
     // left: -500,

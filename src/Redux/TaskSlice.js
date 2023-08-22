@@ -8,6 +8,9 @@ const taskSlice = createSlice({
       //   console.log('recieved tasks----', action.payload);
       state.push(action.payload);
     },
+    onLogOut(state, action) {
+      state.splice(0, state.length);
+    },
     completeTask(state, action) {
       const taskId = action.payload;
       const taskIndex = state.findIndex(task => task.id === taskId);
@@ -70,5 +73,6 @@ export const {
   editTask,
   unarchiveTask,
   removePriority,
+  onLogOut,
 } = taskSlice.actions;
 export default taskSlice.reducer;
