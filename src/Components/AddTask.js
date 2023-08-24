@@ -13,34 +13,41 @@ import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import Button from '../Components/Button';
 import uuid from 'react-native-uuid';
 import {useDispatch} from 'react-redux';
-import {addTask, editTask} from '../Redux/TaskSlice';
+import {addSubtask, addTask, updateTask} from '../Redux/TaskSlice';
 import auth from '@react-native-firebase/auth';
 import firestore from '@react-native-firebase/firestore';
 import Loader from './Loader';
-export default function AddTask({isVisible, setIsVisible, editingTask}) {
+export default function AddTask({
+  isVisible,
+  setIsVisible,
+  editTask,
+  isSubtask,
+  isEditing,
+}) {
   const userId = auth()?.currentUser?.uid;
   const dispatch = useDispatch();
   const [taskTitle, setTaskTitle] = useState('');
   const [taskDescription, setTaskDescription] = useState('');
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
   const [priority, setPriority] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(new Date());
   const [isLoading, setIsLoading] = useState(false);
   const showDatePicker = () => {
     setDatePickerVisibility(true);
   };
-
+  // console.log('parentid for sub task', isSubtask);
   const hideDatePicker = () => {
     setDatePickerVisibility(false);
   };
   useEffect(() => {
-    if (editingTask) {
-      setFormattedDate(editingTask.date);
-      setTaskTitle(editingTask.title);
-      setTaskDescription(editingTask.description);
-      setPriority(editingTask.priority);
+    if (editTask) {
+      setFormattedDate(editTask.date);
+      setTaskTitle(editTask.title);
+      setTaskDescription(editTask.description);
+      setPriority(editTask.priority);
     }
-  }, [editingTask]);
-  // console.log(userId);
+  }, [editTask]);
+
   const handleConfirmDate = date => {
     hideDatePicker();
     const newFormattedDate = formatSelectedDate(date);
@@ -70,52 +77,81 @@ export default function AddTask({isVisible, setIsVisible, editingTask}) {
     formatSelectedTime(new Date()),
   );
 
-  const handleAddTask = () => {
+  const handleAddTask2 = () => {
     const task = {
-      id: editingTask ? editingTask.id : uuid.v4(),
-      date: formattedDate,
-      time: formattedTime,
+      id: isSubtask ? isSubtask : editTask ? editTask.id : uuid.v4(),
+      date: isSubtask ? formattedDate : formattedDate,
+      time: isSubtask ? formattedTime : '',
       title: taskTitle,
       description: taskDescription,
       priority: priority,
       archive: false,
       completed: false,
+      subtasks: isSubtask ? [] : isEditing ? editTask.subtasks : [],
     };
 
     if (taskTitle && taskDescription) {
       setIsLoading(true);
-      if (editingTask) {
+      if (editTask) {
         firestore()
           .collection('Users')
           .doc(userId)
-          .collection('ToDos')
-          .doc(task.id)
+          .collection('Tasks')
+          .doc(editTask.id)
           .update(task)
           .then(data => {
             setIsLoading(false);
             alert('updated sucessfully');
+            dispatch(updateTask(task));
             console.log('updated sucessfully!');
           });
-        dispatch(editTask(task));
       } else {
-        setIsLoading(true);
-        try {
-          firestore()
-            .collection('Users')
-            .doc(userId)
-            .collection('ToDos')
-            .doc(task.id) // now can add task using same id which is task property
-            .set(task)
-            .then(() => {
-              setIsLoading(false);
-              alert('Task added sucessfully!');
+        if (isSubtask) {
+          const withoutSubTask = {...task};
+          delete withoutSubTask.subtasks;
+          try {
+            firestore()
+              .collection('Users')
+              .doc(userId)
+              .collection('Tasks')
+              .doc(isSubtask)
+              .update({
+                subtasks: firestore.FieldValue.arrayUnion(withoutSubTask),
+              })
+              .then(() => {
+                setIsLoading(false);
+                dispatch(
+                  addSubtask({
+                    parentTaskId: isSubtask,
+                    subtask: withoutSubTask,
+                  }),
+                );
+                alert('Sub-Task added sucessfully!');
+                console.log('sub-task sucessfully added');
+              });
+          } catch (error) {
+            console.log(error);
+          }
+        } else {
+          setIsLoading(true);
+          try {
+            firestore()
+              .collection('Users')
+              .doc(userId)
+              .collection('Tasks')
+              .doc(task.id)
+              .set(task)
+              .then(() => {
+                setIsLoading(false);
+                alert('Task added sucessfully!');
 
-              console.log('task sucessfully added to firebase');
-            });
-        } catch (error) {
-          console.log(error);
+                console.log('task sucessfully added to firebase');
+              });
+          } catch (error) {
+            console.log(error);
+          }
+          dispatch(addTask(task));
         }
-        dispatch(addTask(task));
       }
       setTaskTitle('');
       setTaskDescription('');
@@ -162,7 +198,13 @@ export default function AddTask({isVisible, setIsVisible, editingTask}) {
               onCancel={hideDatePicker}
             />
           </View>
-          <Text style={styles.title}>Add New Task</Text>
+          {editTask ? (
+            <Text style={styles.title}>Update your Task</Text>
+          ) : isSubtask ? (
+            <Text style={styles.title}>Add New Sub-Task</Text>
+          ) : (
+            <Text style={styles.title}>Add New Task</Text>
+          )}
           <View style={styles.datePickerContainer}>
             <TouchableOpacity
               style={styles.datePickerButton}
@@ -205,8 +247,10 @@ export default function AddTask({isVisible, setIsVisible, editingTask}) {
             </View>
           </View>
           <Button
-            ButtonName={editingTask ? 'Update' : 'Add-Task'}
-            onPress={() => handleAddTask()}
+            ButtonName={
+              isSubtask ? 'Add Sub-Task' : editTask ? 'Update' : 'Add Task'
+            }
+            onPress={() => handleAddTask2()}
             btnStyles={styles.addTaskButton}
             btnTextStyles={styles.addTaskButtonText}
           />

@@ -27,7 +27,7 @@ export default function Home() {
   const reduxtasks = useSelector(state => state?.allTasks);
   const user = useSelector(state => state?.user);
   const dispatch = useDispatch();
-  console.log('---------', reduxtasks);
+  // console.log('---------', reduxtasks[1].subtasks);
 
   const username = 'Sara';
   const navigation = useNavigation();
@@ -38,88 +38,75 @@ export default function Home() {
   const [filteredTasks, setFilteredTasks] = useState([]);
   const [editingTask, setEditingTask] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isSubtask, setIsSubTask] = useState('');
+  const [editSubTask, setEditSubTask] = useState('');
+  const [isEditing, setIsEditing] = useState(false);
 
   const isLoggedIn = useSelector(state => state.user.isLoggedIn);
-  /////////////////////////////////////////////////////////////////
-  // useEffect(() => {
-  //   try {
-  //     firestore()
-  //       .collection('Users')
-  //       .doc(userId)
-  //       .collection('UserDetails')
-  //       .doc(userId)
-  //       .get()
-  //       .then(querySnapshot => {
-  //         if (!querySnapshot.empty) {
-  //           // Check if the document exists
-  //           const username = querySnapshot.data().username;
 
-  //           // console.log('username--->', username);
-  //           // Dispatch action to update Redux state
-  //           dispatch(setUser(username));
-  //         }
-  //       })
-  //       .catch(error => {
-  //         console.log('Error getting document:', error);
-  //       });
-  //   } catch (error) {
-  //     console.log(error);
-  //   }
-  // }, []);
-  // useEffect(() => {
-  //   if (isLoggedIn) {
-  //     setIsLoading(true);
-  //     const unsubscribe = firestore()
-  //       .collection('Users')
-  //       .doc(userId)
-  //       .collection('ToDos')
-  //       .onSnapshot(snapshot => {
-  //         const tasks = [];
-  //         setIsLoading(false);
-  //         snapshot.forEach(doc => {
-  //           tasks.push({...doc.data(), id: doc.id});
-  //         });
+  /////Works fine gett user data///////
+  useEffect(() => {
+    try {
+      firestore()
+        .collection('Users')
+        .doc(userId)
+        .collection('UserDetails')
+        .doc(userId)
+        .get()
+        .then(querySnapshot => {
+          if (!querySnapshot.empty) {
+            // Check if the document exists
+            const username = querySnapshot.data().username;
+            console.log(username);
+            // console.log('username--->', username);
+            // Dispatch action to update Redux state
+            dispatch(setUser(username));
+          }
+        })
+        .catch(error => {
+          console.log('Error getting document:', error);
+        });
+    } catch (error) {
+      console.log(error);
+    }
+  }, []);
 
-  //         // Flatten the array of arrays into a single array of objects
-  //         const flattenedTasks = tasks.flatMap(taskArray => taskArray);
+  useEffect(() => {
+    if (isLoggedIn) {
+      setIsLoading(true);
+      const unsubscribe = firestore()
+        .collection('Users')
+        .doc(userId)
+        .collection('Tasks')
+        .onSnapshot(snapshot => {
+          const tasks = [];
+          setIsLoading(false);
+          snapshot.forEach(doc => {
+            tasks.push({...doc.data(), id: doc.id});
+          });
 
-  //         // Create a Set to keep track of added task IDs
-  //         const addedTaskIds = new Set();
+          const reduxTaskIds = new Set(reduxtasks.map(task => task.id));
 
-  //         // Dispatch the flattened array of objects
-  //         for (const obj of flattenedTasks) {
-  //           if (!addedTaskIds.has(obj.id)) {
-  //             dispatch(addTask(obj));
-  //             addedTaskIds.add(obj.id); // Add the task ID to the set
-  //           }
-  //         }
+          tasks.forEach(task => {
+            if (!reduxTaskIds.has(task.id)) {
+              dispatch(addTask(task));
+            }
+          });
 
-  //         // Unsubscribe when tasks are fetched and dispatched
-  //         unsubscribe();
+          unsubscribe();
+        });
 
-  //         // Loop through the flattenedTasks array
-  //         // const loopThroughTasks = async () => {
-  //         //   for (const obj of flattenedTasks) {
-  //         //     if (!addedTaskIds.has(obj.id)) {
+      return () => {
+        unsubscribe();
+      };
+    }
+  }, [isLoggedIn, dispatch, reduxtasks, handelAddTask]);
 
-  //         //       addedTaskIds.add(obj.id);
+  ///////////////////////////////////////////
 
-  //         //       await new Promise(resolve => setTimeout(resolve, 1000)); // Delay of 1 second
-  //         //     }
-  //         //   }
-  //         // };
-  //         // loopThroughTasks();
-  //       });
-
-  //     return () => {
-  //       unsubscribe();
-  //     };
-  //   }
-  // }, [isLoggedIn, dispatch]);
-  ////////////////////////////////////////////////////
   useEffect(() => {
     const filteredPriorTasks = reduxtasks.filter(
-      item => item.priority === true,
+      item => item.priority === true && item.archive === false,
     );
     const filteredTodayTasks = reduxtasks.filter(
       item => item.date === formattedDateForTask,
@@ -128,8 +115,10 @@ export default function Home() {
 
     setPriorTasks(filteredPriorTasks);
     setTodayTasks(filteredTodayTasks);
-  }, [reduxtasks]);
+  }, [reduxtasks, handelAddTask, handelEditTask]);
   // console.log('Today tsaks ------', todayTask);
+  // console.log('nonArchivedpriority tasks are--->', priorTasks);cccccccccc
+
   const currentDate = new Date();
   const [selectedDate, setSelectedDate] = useState(currentDate);
   const formattedDate = currentDate.toLocaleDateString('en-US', {
@@ -170,13 +159,12 @@ export default function Home() {
   };
   useEffect(() => {
     const filteredPriorTasks = reduxtasks.filter(
-      item => item.priority === true,
+      item => item.priority === true && item.archive === false,
     );
     const filteredTodayTasks = reduxtasks.filter(
-      item => item.date === formattedDateForTask,
+      item => item.date === formattedDateForTask && item.archive === false,
     );
     // console.log(filteredTodayTasks);
-
     setPriorTasks(filteredPriorTasks);
     setTodayTasks(filteredTodayTasks);
   }, [reduxtasks]);
@@ -194,41 +182,88 @@ export default function Home() {
     setFilteredTasks(filteredTasks);
   };
   // console.log('selected data Date----', filteredTasks[1].date);
-  const showEditModal = task => {
+  const handelEditTask = task => {
     setIsVisible(true);
+    setIsEditing(true);
+    setEditSubTask('');
+    setIsSubTask('');
     setEditingTask(task);
   };
+  const addSubtask = mainTaskId => {
+    console.log(mainTaskId);
+    setEditSubTask('');
+    setEditingTask('');
+    setIsVisible(true);
+    setIsSubTask(mainTaskId);
+  };
 
-  const renderItem = ({item}) => (
-    <TouchableOpacity onPress={() => showEditModal(item)}>
-      <View style={styles.taskItem}>
-        <View style={styles.statusBtnCon}>
-          <View>
-            <Text style={styles.tasktitle} numberOfLines={1}>
-              {item.title}
-            </Text>
-            <Text style={styles.taskDateTime}>{item.date}</Text>
+  const handelAddTask = () => {
+    setEditingTask('');
+    setIsSubTask('');
+    setEditSubTask('');
+    setIsVisible(true);
+  };
+  const handelViewSubTask = (id, index) => {
+    console.log(id);
+    navigation.navigate('SubTasks', {
+      mainTaskID: id,
+      mainTaskIndex: index,
+    });
+  };
+
+  const renderItem = ({item, index}) => (
+    <View>
+      <TouchableOpacity onPress={() => handelEditTask(item)}>
+        <View style={styles.taskItem}>
+          <View style={styles.statusBtnCon}>
+            <View>
+              <Text style={styles.tasktitle} numberOfLines={1}>
+                {item.title}
+              </Text>
+              <Text style={styles.taskDateTime}>{item.date}</Text>
+            </View>
+
+            {item.priority && (
+              <Text
+                style={[
+                  styles.taskStatusBtn,
+                  {
+                    backgroundColor: 'tomato',
+                  },
+                ]}>
+                prior
+              </Text>
+            )}
           </View>
-
-          {item.priority && (
-            <Text
-              style={[
-                styles.taskStatusBtn,
-                {
-                  backgroundColor: 'tomato',
-                },
-              ]}>
-              prior
+          <View>
+            <Text style={styles.taskdescription} numberOfLines={3}>
+              {item.description}
             </Text>
-          )}
+          </View>
         </View>
-        <View style={{flexDirection: 'row'}}></View>
+      </TouchableOpacity>
 
-        <Text style={styles.taskdescription} numberOfLines={3}>
-          {item.description}
-        </Text>
+      <View style={styles.subTaskView}>
+        {item.subtasks?.length > 0 ? (
+          <TouchableOpacity onPress={() => handelViewSubTask(item.id, index)}>
+            <MaterialCommunityIcons
+              name="clipboard-list-outline"
+              size={20}
+              color="blue"
+            />
+          </TouchableOpacity>
+        ) : (
+          <Text>Add sub-task now</Text>
+        )}
+        <FloatingButton
+          iconSize={10}
+          buttonStyles={styles.subTaskFloatBtnStyle}
+          onPress={() => {
+            addSubtask(item.id);
+          }}
+        />
       </View>
-    </TouchableOpacity>
+    </View>
   );
 
   return (
@@ -238,26 +273,22 @@ export default function Home() {
         <AddTask
           isVisible={isVisible}
           setIsVisible={setIsVisible}
-          editingTask={editingTask}
+          editTask={editingTask}
+          isSubtask={isSubtask}
+          editSubTask={editSubTask}
+          isEditing={isEditing}
         />
         <View style={styles.headerCon}>
           <Image style={styles.userImage} source={SourceImages.User} />
           <View>
-            <Text style={styles.greeting}>Hello, {user?.username}!</Text>
+            <Text style={styles.greeting} numberOfLines={1}>
+              Hello, {user?.username}!
+            </Text>
             <Text style={styles.date}>{formattedDate}</Text>
           </View>
           <View>
             <TouchableOpacity
-              style={{
-                right: 10,
-                bottom: 45,
-                borderWidth: 0.5,
-                borderRadius: 10,
-                padding: 3,
-                alignItems: 'center',
-                flexDirection: 'row',
-                backgroundColor: '#00afb9',
-              }}
+              style={styles.logOutBtn}
               onPress={() => {
                 handelSignOut();
               }}>
@@ -294,13 +325,7 @@ export default function Home() {
             <Text style={styles.heading}>Priority Task List</Text>
           </View>
           {priorTasks.length === 0 ? (
-            <View
-              style={{
-                flex: 1,
-                justifyContent: 'center',
-                alignItems: 'center',
-                backgroundColor: '#c7f9cc',
-              }}>
+            <View style={styles.noContentCon}>
               <Text>No Prior Tasks Yet</Text>
             </View>
           ) : (
@@ -327,13 +352,7 @@ export default function Home() {
                 : "Today's Task List"}
             </Text>
             {todayTask.length === 0 ? (
-              <View
-                style={{
-                  flex: 1,
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  backgroundColor: '#c7f9cc',
-                }}>
+              <View style={styles.noContentCon}>
                 <Text>No Today's Tasks Yet</Text>
               </View>
             ) : (
@@ -348,14 +367,14 @@ export default function Home() {
           </View>
           <TouchableOpacity
             onPress={() => navigation.navigate('All-Task')}
-            style={{alignSelf: 'flex-start', marginBottom: 30, marginTop: 5}}>
+            style={styles.viewAllTaskBtn}>
             <Text>View all tasks --{'>'}</Text>
           </TouchableOpacity>
         </>
       </ScrollView>
       <FloatingButton
         onPress={() => {
-          setEditingTask(''), setIsVisible(true);
+          handelAddTask();
         }}
       />
     </View>
@@ -387,6 +406,9 @@ const styles = StyleSheet.create({
   greeting: {
     fontSize: 20,
     fontWeight: 'bold',
+    // backgroundColor: 'green',
+    color: 'black',
+    width: 170,
   },
   date: {
     fontSize: 14,
@@ -412,7 +434,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   secoundListCon: {
-    height: 170,
+    // height: 170,
     marginTop: 10,
     // backgroundColor: 'green',
   },
@@ -435,23 +457,9 @@ const styles = StyleSheet.create({
     color: 'gray',
     fontSize: 8,
   },
-  priorityTaskItem: {
-    // alignItems: 'center',
-    backgroundColor: '#f0f0f0',
-    // backgroundColor: 'green',
-    height: 110,
-    width: 150,
-    borderWidth: 1,
-    padding: 10,
-    marginVertical: 5,
-    borderRadius: 8,
-    marginRight: 15,
-  },
   taskItem: {
-    // alignItems: 'center',
     backgroundColor: '#f0f0f0',
-    // backgroundColor: 'green',
-    // height: 110,
+    height: 100,
     width: 150,
     // flexWrap: 'wrap',
     borderWidth: 1,
@@ -467,10 +475,6 @@ const styles = StyleSheet.create({
     color: 'black',
     fontSize: 12,
     width: 100,
-    // flexWrap: 'wrap',
-    // alignSelf: 'center',
-    // top: 6.5,
-    // left: 3,
   },
 
   taskdescription: {
@@ -479,12 +483,6 @@ const styles = StyleSheet.create({
     color: 'black',
     marginBottom: 10,
     marginTop: 5,
-  },
-  addTaskModalContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   floatingButton: {
     position: 'absolute',
@@ -497,5 +495,46 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     elevation: 5,
+  },
+  logOutBtn: {
+    right: -40,
+    bottom: 30,
+    borderWidth: 0.5,
+    borderRadius: 10,
+    padding: 3,
+    alignItems: 'center',
+    flexDirection: 'row',
+    backgroundColor: '#00afb9',
+    position: 'absolute',
+  },
+  viewAllTaskBtn: {
+    alignSelf: 'flex-start',
+    marginBottom: 30,
+    marginTop: 5,
+  },
+  noContentCon: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#c7f9cc',
+  },
+  subTaskView: {
+    flexDirection: 'row',
+    backgroundColor: '#f0f0f0',
+    justifyContent: 'space-between',
+    width: 150,
+    marginBottom: 10,
+    marginTop: 2,
+    borderWidth: 1,
+    padding: 4,
+    borderRadius: 10,
+  },
+  subTaskFloatBtnStyle: {
+    height: 20,
+    width: 20,
+    position: 'relative',
+    alignSelf: 'flex-end',
+    bottom: 0,
+    right: 0,
   },
 });

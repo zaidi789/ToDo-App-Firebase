@@ -17,17 +17,19 @@ export default function ArchieveList() {
   }, [allTasks]);
 
   const handelUnArchive = item => {
+    // console.log(item.id);
+    // return;
     try {
       firestore()
         .collection('Users')
         .doc(userId)
-        .collection('ToDos')
+        .collection('Tasks')
         .doc(item.id)
-        .update({completed: true})
+        .update({archive: false})
         .then(data => {
-          console.log('unarchive task sucessfully');
+          dispatch(unarchiveTask(item.id));
+          alert('unarchive task sucessfully');
         });
-      dispatch(unarchiveTask(item.id));
     } catch (error) {
       console.log(error);
     }
@@ -151,7 +153,7 @@ const styles = StyleSheet.create({
     color: '#FFF',
   },
   rowFront: {
-    backgroundColor: '#CCC',
+    backgroundColor: '#f0f0f0',
     borderBottomColor: 'black',
     borderWidth: 1,
     // height: 150,

@@ -40,8 +40,8 @@ const CustomTextInput = props => {
 
   const rightIconName = isPassword
     ? isVisible
-      ? 'eye-off-outline'
-      : 'eye-outline'
+      ? 'eye-outline'
+      : 'eye-off-outline'
     : '';
 
   return (
@@ -72,7 +72,7 @@ const CustomTextInput = props => {
           style={styles.input}
           {...restOfProps}
           placeholder={isFocused ? placeholder : ''}
-          secureTextEntry={isVisible}
+          secureTextEntry={isPassword ? !isVisible : isVisible}
           onChangeText={onChangeText}
           value={value}
           onBlur={event => {

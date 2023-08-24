@@ -14,6 +14,7 @@ import PriorityTaskList from '../Screens/PriorityTaskList';
 import ArchieveList from '../Screens/ArchieveList';
 import ForgetPassword from '../Screens/ForgetPassword';
 import {useSelector} from 'react-redux';
+import SubTasks from '../Screens/SubTasks';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -112,6 +113,11 @@ export default function Nav() {
               name="HomeTabs"
               options={{headerShown: false}}
             />
+            <Stack.Screen
+              component={SubTasks}
+              name="SubTasks"
+              options={{headerShown: false}}
+            />
           </>
         ) : (
           <>
@@ -128,6 +134,11 @@ export default function Nav() {
             <Stack.Screen
               component={Signup}
               name="Signup"
+              options={{headerShown: false}}
+            />
+            <Stack.Screen
+              component={SubTasks}
+              name="SubTasks"
               options={{headerShown: false}}
             />
             <Stack.Screen

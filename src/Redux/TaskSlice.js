@@ -8,6 +8,27 @@ const taskSlice = createSlice({
       //   console.log('recieved tasks----', action.payload);
       state.push(action.payload);
     },
+    addSubtask(state, action) {
+      const {parentTaskId, subtask} = action.payload;
+      const parentTaskIndex = state.findIndex(task => task.id === parentTaskId);
+
+      if (parentTaskIndex !== -1) {
+        state[parentTaskIndex].subtasks.push(subtask);
+      }
+    },
+    deleteSubtask(state, action) {
+      const {parentTaskId, subtaskId} = action.payload;
+      const parentTaskIndex = state.findIndex(task => task.id === parentTaskId);
+
+      if (parentTaskIndex !== -1) {
+        const subtaskIndex = state[parentTaskIndex].subtasks.findIndex(
+          subtask => subtask.id === subtaskId,
+        );
+        if (subtaskIndex !== -1) {
+          state[parentTaskIndex].subtasks.splice(subtaskIndex, 1);
+        }
+      }
+    },
     onLogOut(state, action) {
       state.splice(0, state.length);
     },
@@ -46,12 +67,11 @@ const taskSlice = createSlice({
     deleteTask(state, action) {
       const taskId = action.payload;
       const taskIndex = state.findIndex(task => task.id === taskId);
-
       if (taskIndex !== -1) {
         state.splice(taskIndex, 1);
       }
     },
-    editTask(state, action) {
+    updateTask(state, action) {
       const {id, title, description, date, priority} = action.payload;
       const taskIndex = state.findIndex(task => task.id === id);
 
@@ -70,9 +90,12 @@ export const {
   completeTask,
   addArchive,
   deleteTask,
-  editTask,
+  updateTask,
   unarchiveTask,
   removePriority,
   onLogOut,
+  addSubtask,
+  editSubtask,
+  deleteSubtask,
 } = taskSlice.actions;
 export default taskSlice.reducer;

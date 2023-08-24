@@ -21,13 +21,13 @@ export default function CompletedTaskList() {
       firestore()
         .collection('Users')
         .doc(userId)
-        .collection('ToDos')
+        .collection('Tasks')
         .doc(id)
         .delete()
         .then(() => {
+          dispatch(deleteTask(id));
           alert('Task deleted!');
         });
-      dispatch(deleteTask(id));
     } catch (error) {
       console.log(error);
     }
@@ -136,7 +136,7 @@ const styles = StyleSheet.create({
     color: '#FFF',
   },
   rowFront: {
-    backgroundColor: '#CCC',
+    backgroundColor: '#f0f0f0',
     borderBottomColor: 'black',
     borderWidth: 0.5,
     // height: 150,
@@ -230,6 +230,6 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#99d98c',
+    backgroundColor: '#edf6f9',
   },
 });

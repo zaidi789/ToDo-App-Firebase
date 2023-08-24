@@ -1,3 +1,4 @@
+import React, {useState, useEffect} from 'react';
 import {
   StyleSheet,
   Text,
@@ -6,7 +7,6 @@ import {
   FlatList,
   Modal,
 } from 'react-native';
-import React, {useState, useEffect} from 'react';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import {useNavigation} from '@react-navigation/native';
 import {Calendar} from 'react-native-calendars';
@@ -25,8 +25,6 @@ export default function AllTaskList() {
   const dispatch = useDispatch();
   const navigation = useNavigation();
   const [task, setTask] = useState(false);
-  const [priorTasks, setPriorTasks] = useState([]);
-  const [allTask, setAllTask] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedFromDate, setSelectedFromDate] = useState(new Date());
   const [selectedToDate, setSelectedToDate] = useState(new Date());
@@ -34,19 +32,19 @@ export default function AllTaskList() {
   const [filteredTasks, setFilteredTasks] = useState([]);
   const [isVisible, setIsVisible] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
-  useEffect(() => {
-    if (Array.isArray(allTasks) && allTasks.length > 0) {
-      setTask(true);
-      const filteredPriorTasks = allTasks.filter(
-        item => item.priority === true,
-      );
-      setPriorTasks(filteredPriorTasks);
-      const filteredAllTask = allTasks.filter(item => item.archive === false);
-      setAllTask(filteredAllTask);
-    } else {
-      setTask(false);
-    }
-  }, [allTasks, navigation]);
+  const [isSubtask, setIsSubTask] = useState();
+  const [isEditing, setIsEditing] = useState();
+
+  // console.log('all task', allTask);
+  const priorityTasks = useSelector(state =>
+    state?.allTasks?.filter(
+      task => task?.priority === true && task?.archive === false,
+    ),
+  );
+  // console.log(priorityTasks);
+  const nonArchivedTasks = useSelector(state =>
+    state?.allTasks?.filter(task => task?.archive === false),
+  );
 
   const handleFilterByDateRange = (fromDate, toDate) => {
     const formattedFromDate = formatSelectedDate(fromDate);
@@ -86,44 +84,19 @@ export default function AllTaskList() {
     return `${day}-${month}-${year}`;
   };
 
-  const showEditModal = task => {
-    setIsVisible(true);
-    setEditingTask(task);
-  };
   //   console.log('priority tasks', priorTasks);
-  const renderItem = ({item}) => (
-    <TouchableOpacity onPress={() => showEditModal(item)}>
-      <View style={styles.taskItem}>
-        <View style={styles.statusBtnCon}>
-          <View>
-            <Text style={styles.tasktitle} numberOfLines={1}>
-              {item.title}
-            </Text>
-            <Text style={styles.priorTaskDateTime} numberOfLines={2}>
-              {item.date}
-            </Text>
-          </View>
-
-          <Text style={styles.taskStatusBtn}>prior</Text>
-        </View>
-        <View style={{flexDirection: 'row'}}></View>
-
-        <Text style={styles.taskdescription}>{item.description}</Text>
-      </View>
-    </TouchableOpacity>
-  );
   const handelComplete = id => {
     try {
       firestore()
         .collection('Users')
         .doc(userId)
-        .collection('ToDos')
+        .collection('Tasks')
         .doc(id)
         .update({completed: true})
         .then(data => {
+          dispatch(completeTask(id));
           alert('Goal completed sucessfully');
         });
-      dispatch(completeTask(id));
     } catch (error) {
       console.log(error);
     }
@@ -134,13 +107,13 @@ export default function AllTaskList() {
       firestore()
         .collection('Users')
         .doc(userId)
-        .collection('ToDos')
+        .collection('Tasks')
         .doc(id)
         .delete()
         .then(() => {
+          dispatch(deleteTask(id));
           alert('Task deleted!');
         });
-      dispatch(deleteTask(id));
     } catch (error) {
       console.log(error);
     }
@@ -151,25 +124,114 @@ export default function AllTaskList() {
       firestore()
         .collection('Users')
         .doc(userId)
-        .collection('ToDos')
+        .collection('Tasks')
         .doc(id)
         .update({archive: true})
         .then(data => {
+          dispatch(addArchive(id));
           alert('Arcived sucessfully');
         });
-      dispatch(addArchive(id));
     } catch (error) {
       console.log(error);
     }
   };
 
-  const renderShowItem = item => (
+  const handelAddTask = () => {
+    setEditingTask('');
+    setIsSubTask('');
+    setIsVisible(true);
+  };
+  const addSubtask = mainTaskId => {
+    // console.log(mainTaskId);
+    setEditingTask('');
+    setIsVisible(true);
+    setIsSubTask(mainTaskId);
+  };
+  const handelEditTask = task => {
+    // console.log('edite task data', task);
+    setIsVisible(true);
+    setIsEditing(true);
+    setIsSubTask('');
+    setEditingTask(task);
+  };
+  const handelViewSubTask = (id, index) => {
+    // console.log(id);
+    navigation.navigate('SubTasks', {
+      mainTaskID: id,
+      mainTaskIndex: index,
+    });
+  };
+
+  const renderItem = ({item, index}) => (
+    <View>
+      <View style={styles.taskItem}>
+        <View style={styles.statusBtnCon}>
+          <View>
+            <Text style={styles.tasktitle} numberOfLines={1}>
+              {item.title}
+            </Text>
+            <Text style={styles.priorTaskDateTime} numberOfLines={1}>
+              {item.date}
+            </Text>
+          </View>
+
+          <Text style={styles.taskStatusBtn}>prior</Text>
+        </View>
+        <View style={{flexDirection: 'row'}}></View>
+        <Text style={styles.taskdescription} numberOfLines={3}>
+          {item.description}
+        </Text>
+      </View>
+      <View
+        style={{
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          backgroundColor: '#f0f0f0',
+          width: 150,
+          marginBottom: 10,
+          marginTop: 2,
+          borderWidth: 1,
+          padding: 4,
+          borderRadius: 10,
+        }}>
+        {item.subtasks?.length > 0 ? (
+          <TouchableOpacity onPress={() => handelViewSubTask(item.id, index)}>
+            <MaterialCommunityIcons
+              name="clipboard-list-outline"
+              size={20}
+              color="blue"
+            />
+          </TouchableOpacity>
+        ) : (
+          <Text>Add sub-task now</Text>
+        )}
+        <FloatingButton
+          iconSize={10}
+          buttonStyles={{
+            height: 20,
+            width: 20,
+            position: 'relative',
+            alignSelf: 'flex-end',
+            // marginTop: 10,
+            bottom: 0,
+            right: 0,
+          }}
+          onPress={() => {
+            addSubtask(item.id);
+          }}
+        />
+      </View>
+    </View>
+  );
+
+  const renderShowItem = ({item, index}) => (
     <View
       style={{
+        // flex: 1,
         backgroundColor: '#cbdfbd',
       }}>
       <TouchableOpacity
-        onPress={() => showEditModal(item.item)}
+        onPress={() => handelEditTask(item)}
         style={styles.rowFront}
         underlayColor={'#fff'}
         activeOpacity={0.5}>
@@ -180,25 +242,63 @@ export default function AllTaskList() {
           }}>
           <View>
             <Text style={styles.bottomtasktitle} numberOfLines={1}>
-              {item.item.title}
+              {item.title}
             </Text>
-            <Text style={styles.bottomtaskDateTime}>{item.item.date}</Text>
+            <Text style={styles.bottomtaskDateTime}>{item.date}</Text>
           </View>
 
-          {item.item.priority === true ? (
+          {item.priority === true ? (
             <Text style={[styles.prioritybtn, {backgroundColor: 'tomato'}]}>
               priority
             </Text>
-          ) : item.item.completed ? (
+          ) : item.completed ? (
             <Text style={[styles.prioritybtn, {backgroundColor: 'green'}]}>
               completed
             </Text>
           ) : null}
         </View>
-        <Text style={styles.bottomtaskdescription}>
-          {item.item.description}
-        </Text>
+        <Text style={styles.bottomtaskdescription}>{item.description}</Text>
       </TouchableOpacity>
+      <View
+        style={{
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          backgroundColor: '#f0f0f0',
+
+          // width: 150,
+          marginBottom: 15,
+          marginTop: 0,
+          borderWidth: 1,
+          padding: 4,
+          borderRadius: 10,
+        }}>
+        {item.subtasks?.length > 0 ? (
+          <TouchableOpacity onPress={() => handelViewSubTask(item.id, index)}>
+            <MaterialCommunityIcons
+              name="clipboard-list-outline"
+              size={20}
+              color="blue"
+            />
+          </TouchableOpacity>
+        ) : (
+          <Text>Add sub-task now</Text>
+        )}
+        <FloatingButton
+          iconSize={10}
+          buttonStyles={{
+            height: 20,
+            width: 20,
+            position: 'relative',
+            alignSelf: 'flex-end',
+            // marginTop: 10,
+            bottom: 0,
+            right: 0,
+          }}
+          onPress={() => {
+            addSubtask(item.id);
+          }}
+        />
+      </View>
     </View>
   );
 
@@ -227,9 +327,10 @@ export default function AllTaskList() {
       <AddTask
         isVisible={isVisible}
         setIsVisible={setIsVisible}
-        editingTask={editingTask}
+        editTask={editingTask}
+        isSubtask={isSubtask}
+        isEditing={isEditing}
       />
-      {/* <AddTask setIsVisible={setIsVisible} isVisible={isVisible} /> */}
       <View style={styles.topFilterCon}>
         <TouchableOpacity
           style={styles.btn}
@@ -237,7 +338,7 @@ export default function AllTaskList() {
           <Text style={styles.btnText}>Filter</Text>
           <MaterialCommunityIcons
             name="calendar-search"
-            size={35}
+            size={25}
             color="white"
             style={styles.filterIcon}
           />
@@ -318,26 +419,26 @@ export default function AllTaskList() {
       <View style={styles.priorityLCon}>
         <View style={styles.priorityLCon}>
           <Text style={styles.heading}>Priority Task List:</Text>
-          {priorTasks.length === 0 ? (
-            <View style={styles.noContent}>
+
+          {priorityTasks.length <= 0 ? (
+            <View
+              style={{
+                height: 125,
+                justifyContent: 'center',
+                alignItems: 'center',
+                backgroundColor: '#cbdfbd',
+              }}>
               <Text>No priority tasks added yet.</Text>
             </View>
           ) : (
-            <View style={{backgroundColor: '#cbdfbd'}}>
+            <View style={{backgroundColor: '#cbdfbd', height: 125}}>
               <FlatList
-                data={priorTasks}
+                data={priorityTasks}
                 keyExtractor={(item, index) => index.toString()}
                 renderItem={renderItem}
                 style={styles.taskList}
                 horizontal
               />
-              <TouchableOpacity
-                style={{alignSelf: 'flex-end'}}
-                onPress={() => {
-                  navigation.navigate('Priority-Task');
-                }}>
-                <Text>View all prior tasks --{'>'}</Text>
-              </TouchableOpacity>
             </View>
           )}
         </View>
@@ -359,27 +460,31 @@ export default function AllTaskList() {
             )}
             <FloatingButton
               onPress={() => {
-                setEditingTask(''), setIsVisible(true);
+                handelAddTask();
               }}
+              buttonStyles={{left: 290}}
             />
           </View>
-          {allTask.length === 0 ? (
+          {nonArchivedTasks.length === 0 ? (
             <View style={styles.noContent}>
               <Text>No tasks added yet. Add a task now!</Text>
             </View>
           ) : (
-            <SwipeListView
-              data={filteredTasks.length !== 0 ? filteredTasks : allTask}
-              renderItem={renderShowItem}
-              renderHiddenItem={renderHiddenItem}
-              leftOpenValue={75}
-              rightOpenValue={-150}
-              previewRowKey={'0'}
-              previewOpenValue={-40}
-              previewOpenDelay={3000}
-            />
+            <View style={{height: 390}}>
+              <SwipeListView
+                data={
+                  filteredTasks.length !== 0 ? filteredTasks : nonArchivedTasks
+                }
+                renderItem={renderShowItem}
+                renderHiddenItem={renderHiddenItem}
+                leftOpenValue={75}
+                rightOpenValue={-150}
+                previewRowKey={'0'}
+                previewOpenValue={-40}
+                previewOpenDelay={3000}
+              />
+            </View>
           )}
-          <Text style={{}}></Text>
         </View>
       </View>
     </View>
@@ -393,25 +498,20 @@ const styles = StyleSheet.create({
   },
   topFilterCon: {
     marginTop: 10,
-    height: 50,
+    height: 35,
     alignItems: 'center',
     // backgroundColor: 'orange',
   },
   priorityLCon: {
-    height: 150,
-    // backgroundColor: 'green',
-    marginTop: 10,
+    marginTop: 3,
     padding: 5,
   },
   allTaskCon: {
-    height: 438,
     padding: 5,
-    // backgroundColor: 'tomato',
-    marginTop: 10,
   },
   btn: {
     flexDirection: 'row',
-    height: 50,
+    height: 40,
     width: '90%',
     backgroundColor: '#279EFF',
     borderRadius: 10,
@@ -421,7 +521,7 @@ const styles = StyleSheet.create({
   btnText: {
     color: 'white',
     fontWeight: '500',
-    fontSize: 30,
+    fontSize: 20,
     left: 20,
   },
   filterIcon: {
@@ -431,22 +531,13 @@ const styles = StyleSheet.create({
     // alignItems: 'center',
     backgroundColor: '#f0f0f0',
     // backgroundColor: 'green',
-    height: 80,
+    height: 75,
     width: 150,
     borderWidth: 1,
     padding: 10,
     marginVertical: 5,
     borderRadius: 8,
     marginRight: 15,
-  },
-  taskDateTime: {
-    fontWeight: '500',
-    color: 'black',
-    fontSize: 8,
-    alignSelf: 'flex-start',
-    // top: -25,
-    left: 8,
-    marginTop: 5,
   },
   priorTaskDateTime: {
     fontWeight: '500',
@@ -468,15 +559,6 @@ const styles = StyleSheet.create({
     height: 25,
     marginRight: 10,
   },
-  allTaskItem: {
-    // alignItems: 'center',
-    backgroundColor: '#f0f0f0',
-    // padding: 10,
-    marginVertical: 5,
-    borderRadius: 8,
-    height: 100,
-    // marginRight: 15,
-  },
   heading: {
     fontSize: 18,
     fontWeight: '600',
@@ -488,21 +570,15 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: 'gray',
     fontSize: 10,
-    // marginRight: 5,
     alignSelf: 'flex-start',
     marginTop: 5,
-    // top: -25,
     left: 5,
-    // marginTop: 8,
   },
   tasktitle: {
     width: 100,
     fontWeight: '500',
     color: 'black',
     fontSize: 12,
-    // alignSelf: 'center',
-    // top: 6.5,
-    // left: 3,
   },
   bottomtasktitle: {
     fontWeight: '500',
@@ -576,9 +652,6 @@ const styles = StyleSheet.create({
     elevation: 2,
     marginTop: 10,
   },
-  buttonOpen: {
-    backgroundColor: '#F194FF',
-  },
   buttonClose: {
     backgroundColor: '#2196F3',
   },
@@ -587,27 +660,14 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     textAlign: 'center',
   },
-  modalText: {
-    marginBottom: 15,
-    textAlign: 'center',
-  },
-  calendarButton: {
-    padding: 10,
-    borderRadius: 8,
-    backgroundColor: 'blue',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 10,
-  },
-  calendarButtonText: {
-    color: 'white',
-  },
+
   rowFront: {
-    backgroundColor: '#CCC',
+    // flex: 1,
+    backgroundColor: '#f0f0f0',
     borderBottomColor: 'black',
     borderWidth: 0.5,
     // height: 150,
-    marginBottom: 10,
+    marginBottom: 5,
     marginTop: 5,
     borderRadius: 10,
     padding: 5,
@@ -653,6 +713,7 @@ const styles = StyleSheet.create({
   },
   noContent: {
     flex: 1,
+    // height: 100,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#cbdfbd',

@@ -22,13 +22,13 @@ export default function PriorityTaskList() {
       firestore()
         .collection('Users')
         .doc(userId)
-        .collection('ToDos')
+        .collection('Tasks')
         .doc(id)
         .update({completed: true})
         .then(data => {
+          dispatch(completeTask(id));
           alert('Goal completed sucessfully');
         });
-      dispatch(completeTask(id));
     } catch (error) {
       console.log(error);
     }
@@ -39,13 +39,16 @@ export default function PriorityTaskList() {
       firestore()
         .collection('Users')
         .doc(userId)
-        .collection('ToDos')
+        .collection('tasks')
         .doc(id)
         .delete()
         .then(() => {
+          dispatch(deleteTask(id));
           alert('User deleted!');
+        })
+        .catch(eror => {
+          console.log(eror);
         });
-      dispatch(deleteTask(id));
     } catch (error) {
       console.log(error);
     }
@@ -56,13 +59,13 @@ export default function PriorityTaskList() {
       firestore()
         .collection('Users')
         .doc(userId)
-        .collection('ToDos')
+        .collection('Tasks')
         .doc(id)
         .update({priority: false})
         .then(data => {
+          dispatch(removePriority(id));
           console.log('removed priority');
         });
-      dispatch(removePriority(id));
     } catch (error) {
       console.log(error);
     }
@@ -188,7 +191,7 @@ const styles = StyleSheet.create({
     color: '#FFF',
   },
   rowFront: {
-    backgroundColor: '#CCC',
+    backgroundColor: '#f0f0f0',
     borderBottomColor: 'black',
     borderWidth: 1,
     // height: 150,
