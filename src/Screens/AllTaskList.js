@@ -154,15 +154,15 @@ export default function AllTaskList() {
     setIsSubTask('');
     setEditingTask(task);
   };
-  const handelViewSubTask = (id, index) => {
+  const handelViewSubTask = (subtasks, id) => {
     // console.log(id);
     navigation.navigate('SubTasks', {
       mainTaskID: id,
-      mainTaskIndex: index,
+      subTasks: subtasks,
     });
   };
 
-  const renderItem = ({item, index}) => (
+  const renderItem = ({item}) => (
     <View>
       <View style={styles.taskItem}>
         <View style={styles.statusBtnCon}>
@@ -195,7 +195,8 @@ export default function AllTaskList() {
           borderRadius: 10,
         }}>
         {item.subtasks?.length > 0 ? (
-          <TouchableOpacity onPress={() => handelViewSubTask(item.id, index)}>
+          <TouchableOpacity
+            onPress={() => handelViewSubTask(item.subtasks, item.id)}>
             <MaterialCommunityIcons
               name="clipboard-list-outline"
               size={20}
@@ -273,7 +274,8 @@ export default function AllTaskList() {
           borderRadius: 10,
         }}>
         {item.subtasks?.length > 0 ? (
-          <TouchableOpacity onPress={() => handelViewSubTask(item.id, index)}>
+          <TouchableOpacity
+            onPress={() => handelViewSubTask(item.subtasks, item.id)}>
             <MaterialCommunityIcons
               name="clipboard-list-outline"
               size={20}

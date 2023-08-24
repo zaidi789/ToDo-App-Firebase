@@ -2,7 +2,6 @@ import React, {useState, useEffect} from 'react';
 import {View, Text, StyleSheet, TouchableOpacity} from 'react-native';
 
 import {useNavigation} from '@react-navigation/native';
-import FloatingButton from '../Components/FlatingButton';
 import AddTask from '../Components/AddTask';
 import {useSelector, useDispatch} from 'react-redux';
 import auth from '@react-native-firebase/auth';
@@ -10,36 +9,38 @@ import Loader from '../Components/Loader';
 import {SwipeListView} from 'react-native-swipe-list-view';
 import firestore from '@react-native-firebase/firestore';
 import {deleteSubtask} from '../Redux/TaskSlice';
+import FloatingButton from '../Components/FlatingButton';
 
 export default function SubTasks({route}) {
-  const {mainTaskID, mainTaskIndex} = route.params;
-  // console.log('main task index is', mainTaskID);
+  const {mainTaskID, subTasks} = route.params;
   const userId = auth()?.currentUser?.uid;
-  const reduxtasks = useSelector(state => state?.allTasks);
-  const user = useSelector(state => state?.user);
   const dispatch = useDispatch();
-  const subtaskData = [reduxtasks[mainTaskIndex].subtasks];
-  const subTaskData = subtaskData.flat();
-  console.log(subTaskData);
+  const allTasks = useSelector(state => state.allTasks);
+  let SubTasks = [];
+  const mainTask = allTasks.find(task => task.id === mainTaskID);
+  if (mainTask) {
+    SubTasks = mainTask.subtasks;
+    // console.log('subtasks are--->', SubTasks);
+  } else {
+    console.log('Main task not found.');
+  }
 
-  //   const allTasks = useSelector(state => state.tasks);
-
-  const username = 'Sara';
   const navigation = useNavigation();
   const [isVisible, setIsVisible] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [isSubtask, setIsSubTask] = useState('');
+  const [isSubtask, setIsSubTask] = useState(mainTaskID);
   const [editSubTask, setEditSubTask] = useState('');
   const [isEditing, setIsEditing] = useState(false);
-  const [subTasks, setSubTasks] = useState([]);
-  const [mainTID, setMainTID] = useState(mainTaskID);
-  // console.log(mainTID);
-  useEffect(() => {
-    if (subTaskData.length === 0) {
-      navigation.navigate('Home');
-    }
-  }, [handleDeleteSubtask]);
+
+  const addSubtask = () => {
+    console.log(mainTaskID);
+    setEditSubTask('');
+    setEditingTask('');
+    setIsVisible(true);
+    setIsSubTask(mainTaskID);
+  };
+
   const handleDeleteSubtask = async subtaskId => {
     try {
       const parentTaskId = mainTaskID;
@@ -122,10 +123,15 @@ export default function SubTasks({route}) {
       />
       <View style={styles.headertitle}>
         <Text style={styles.headerText}>Sub-Tasks</Text>
+        <FloatingButton
+          onPress={() => {
+            addSubtask();
+          }}
+        />
       </View>
       <View style={styles.listView}>
         <SwipeListView
-          data={subTaskData}
+          data={SubTasks}
           renderItem={renderShowItem}
           renderHiddenItem={renderHiddenItem}
           leftOpenValue={0}
@@ -147,8 +153,9 @@ const styles = StyleSheet.create({
     // marginBottom: 1,
   },
   headertitle: {
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'space-between',
     marginTop: 10,
     marginBottom: 10,
     // backgroundColor: 'green',
