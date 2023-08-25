@@ -21,6 +21,10 @@ export default function ForgetPassword() {
           alert('Reset email sent sucessfully');
           setIsLoading(false);
           navigation.navigate('SignIn');
+        })
+        .catch(error => {
+          setIsLoading(false);
+          alert('email address not found');
         });
     } catch (error) {
       console.log(error);

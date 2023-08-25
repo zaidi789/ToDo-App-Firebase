@@ -1,7 +1,5 @@
 import React, {useState, useEffect} from 'react';
 import {View, Text, StyleSheet, TouchableOpacity} from 'react-native';
-
-import {useNavigation} from '@react-navigation/native';
 import AddTask from '../Components/AddTask';
 import {useSelector, useDispatch} from 'react-redux';
 import auth from '@react-native-firebase/auth';
@@ -24,8 +22,6 @@ export default function SubTasks({route}) {
   } else {
     console.log('Main task not found.');
   }
-
-  const navigation = useNavigation();
   const [isVisible, setIsVisible] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
