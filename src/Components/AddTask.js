@@ -104,6 +104,10 @@ export default function AddTask({
             alert('updated sucessfully');
             dispatch(updateTask(task));
             console.log('updated sucessfully!');
+          })
+          .catch(() => {
+            setIsLoading(false);
+            console.log('updated failed');
           });
       } else {
         if (isSubtask) {
@@ -127,7 +131,11 @@ export default function AddTask({
                   }),
                 );
                 alert('Sub-Task added sucessfully!');
-                console.log('sub-task sucessfully added');
+                console.log('Sub-task sucessfully added');
+              })
+              .catch(() => {
+                setIsLoading(false);
+                console.log('Sub-task adding failed');
               });
           } catch (error) {
             console.log(error);
@@ -145,7 +153,11 @@ export default function AddTask({
                 setIsLoading(false);
                 alert('Task added sucessfully!');
 
-                console.log('task sucessfully added to firebase');
+                console.log('Task sucessfully added to firebase');
+              })
+              .catch(() => {
+                setIsLoading(false);
+                console.log('Task adding failed');
               });
           } catch (error) {
             console.log(error);

@@ -17,6 +17,7 @@ import {useSelector, useDispatch} from 'react-redux';
 import {addArchive, completeTask, deleteTask} from '../Redux/TaskSlice';
 import auth from '@react-native-firebase/auth';
 import firestore from '@react-native-firebase/firestore';
+import Loader from '../Components/Loader';
 
 export default function AllTaskList() {
   const userId = auth().currentUser.uid;
@@ -34,6 +35,7 @@ export default function AllTaskList() {
   const [editingTask, setEditingTask] = useState(null);
   const [isSubtask, setIsSubTask] = useState();
   const [isEditing, setIsEditing] = useState();
+  const [isLoading, setIsLoading] = useState(false);
 
   // console.log('all task', allTask);
   const priorityTasks = useSelector(state =>
@@ -86,6 +88,7 @@ export default function AllTaskList() {
 
   //   console.log('priority tasks', priorTasks);
   const handelComplete = id => {
+    setIsLoading(true);
     try {
       firestore()
         .collection('Users')
@@ -94,15 +97,22 @@ export default function AllTaskList() {
         .doc(id)
         .update({completed: true})
         .then(data => {
+          setIsLoading(false);
           dispatch(completeTask(id));
           alert('Goal completed sucessfully');
+        })
+        .catch(() => {
+          setIsLoading(false);
+          console.log('Task Completed failed');
         });
     } catch (error) {
+      setIsLoading(false);
       console.log(error);
     }
   };
 
   const handelDelete = id => {
+    setIsLoading(true);
     try {
       firestore()
         .collection('Users')
@@ -112,14 +122,21 @@ export default function AllTaskList() {
         .delete()
         .then(() => {
           dispatch(deleteTask(id));
+          setIsLoading(false);
           alert('Task deleted!');
+        })
+        .catch(() => {
+          setIsLoading(false);
+          console.log('Task deletion failed');
         });
     } catch (error) {
+      setIsLoading(false);
       console.log(error);
     }
   };
 
   const handelArchive = id => {
+    setIsLoading(true);
     try {
       firestore()
         .collection('Users')
@@ -129,9 +146,15 @@ export default function AllTaskList() {
         .update({archive: true})
         .then(data => {
           dispatch(addArchive(id));
+          setIsLoading(false);
           alert('Arcived sucessfully');
+        })
+        .catch(() => {
+          setIsLoading(false);
+          console.log('Task archive failed');
         });
     } catch (error) {
+      setIsLoading(false);
       console.log(error);
     }
   };
@@ -326,6 +349,7 @@ export default function AllTaskList() {
 
   return (
     <View style={styles.container}>
+      <Loader modalVisible={isLoading} />
       <AddTask
         isVisible={isVisible}
         setIsVisible={setIsVisible}

@@ -5,18 +5,21 @@ import {useSelector, useDispatch} from 'react-redux';
 import {deleteTask} from '../Redux/TaskSlice';
 import auth from '@react-native-firebase/auth';
 import firestore from '@react-native-firebase/firestore';
+import Loader from '../Components/Loader';
 
 export default function CompletedTaskList() {
   const userId = auth().currentUser.uid;
   const allTasks = useSelector(state => state.allTasks);
   const dispatch = useDispatch();
   const [completedTasks, setCompletedTasks] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
   useEffect(() => {
     const completeTasks = allTasks.filter(item => item.completed === true);
     setCompletedTasks(completeTasks);
   }, [allTasks]);
 
   const handelDelete = id => {
+    setIsLoading(true);
     try {
       firestore()
         .collection('Users')
@@ -25,8 +28,13 @@ export default function CompletedTaskList() {
         .doc(id)
         .delete()
         .then(() => {
+          setIsLoading(false);
           dispatch(deleteTask(id));
           alert('Task deleted!');
+        })
+        .catch(() => {
+          setIsLoading(false);
+          console.log('Task deletion failed');
         });
     } catch (error) {
       console.log(error);
@@ -73,6 +81,7 @@ export default function CompletedTaskList() {
 
   return (
     <View style={styles.container}>
+      <Loader modalVisible={isLoading} />
       <View style={styles.headerCon}>
         <Text style={styles.headerText}>Completed Tasks</Text>
       </View>

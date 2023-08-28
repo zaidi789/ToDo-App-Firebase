@@ -29,9 +29,7 @@ export default function Home() {
   const dispatch = useDispatch();
   // console.log('---------', reduxtasks[1].subtasks);
 
-  const username = 'Sara';
   const navigation = useNavigation();
-  const [taskState, setTaskState] = useState([reduxtasks]);
   const [isVisible, setIsVisible] = useState(false);
   const [todayTask, setTodayTasks] = useState([]);
   const [priorTasks, setPriorTasks] = useState([]);
@@ -55,11 +53,8 @@ export default function Home() {
         .get()
         .then(querySnapshot => {
           if (!querySnapshot.empty) {
-            // Check if the document exists
             const username = querySnapshot.data().username;
             console.log(username);
-            // console.log('username--->', username);
-            // Dispatch action to update Redux state
             dispatch(setUser(username));
           }
         })
@@ -72,33 +67,36 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    if (isLoggedIn) {
-      setIsLoading(true);
-      const unsubscribe = firestore()
-        .collection('Users')
-        .doc(userId)
-        .collection('Tasks')
-        .onSnapshot(snapshot => {
-          const tasks = [];
-          setIsLoading(false);
-          snapshot.forEach(doc => {
-            tasks.push({...doc.data(), id: doc.id});
+    try {
+      if (isLoggedIn) {
+        setIsLoading(true);
+        const unsubscribe = firestore()
+          .collection('Users')
+          .doc(userId)
+          .collection('Tasks')
+          .onSnapshot(snapshot => {
+            const tasks = [];
+            setIsLoading(false);
+            snapshot.forEach(doc => {
+              tasks.push({...doc.data(), id: doc.id});
+            });
+
+            const reduxTaskIds = new Set(reduxtasks.map(task => task.id));
+
+            tasks.forEach(task => {
+              if (!reduxTaskIds.has(task.id)) {
+                dispatch(addTask(task));
+              }
+            });
           });
 
-          const reduxTaskIds = new Set(reduxtasks.map(task => task.id));
-
-          tasks.forEach(task => {
-            if (!reduxTaskIds.has(task.id)) {
-              dispatch(addTask(task));
-            }
-          });
-
+        return () => {
           unsubscribe();
-        });
-
-      return () => {
-        unsubscribe();
-      };
+        };
+      }
+    } catch (error) {
+      setIsLoading(false);
+      aler(error);
     }
   }, [isLoggedIn, dispatch, reduxtasks, handelAddTask]);
 
@@ -111,13 +109,9 @@ export default function Home() {
     const filteredTodayTasks = reduxtasks.filter(
       item => item.date === formattedDateForTask,
     );
-    // console.log(filteredTodayTasks);
-
     setPriorTasks(filteredPriorTasks);
     setTodayTasks(filteredTodayTasks);
   }, [reduxtasks, handelAddTask, handelEditTask]);
-  // console.log('Today tsaks ------', todayTask);
-  // console.log('nonArchivedpriority tasks are--->', priorTasks);cccccccccc
 
   const currentDate = new Date();
   const [selectedDate, setSelectedDate] = useState(currentDate);
@@ -351,7 +345,7 @@ export default function Home() {
                 ? 'Filtered Tasks'
                 : "Today's Task List"}
             </Text>
-            {todayTask.length === 0 ? (
+            {todayTask.length === 0 && filteredTasks.length === 0 ? (
               <View style={styles.noContentCon}>
                 <Text>No Today's Tasks Yet</Text>
               </View>
@@ -385,7 +379,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 10,
-    backgroundColor: '#d0f4de',
+    backgroundColor: '#ffffff',
     // marginBottom: 1,
   },
   headerCon: {

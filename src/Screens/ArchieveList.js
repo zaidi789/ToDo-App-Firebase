@@ -5,12 +5,14 @@ import {useSelector, useDispatch} from 'react-redux';
 import {unarchiveTask} from '../Redux/TaskSlice';
 import auth from '@react-native-firebase/auth';
 import firestore from '@react-native-firebase/firestore';
+import Loader from '../Components/Loader';
 
 export default function ArchieveList() {
   const userId = auth().currentUser.uid;
   const allTasks = useSelector(state => state.allTasks);
   const dispatch = useDispatch();
   const [archiveTask, setArchiveTask] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
   useEffect(() => {
     const archiveTasks = allTasks.filter(item => item.archive === true);
     setArchiveTask(archiveTasks);
@@ -19,6 +21,7 @@ export default function ArchieveList() {
   const handelUnArchive = item => {
     // console.log(item.id);
     // return;
+    setIsLoading(true);
     try {
       firestore()
         .collection('Users')
@@ -28,7 +31,12 @@ export default function ArchieveList() {
         .update({archive: false})
         .then(data => {
           dispatch(unarchiveTask(item.id));
+          setIsLoading(false);
           alert('unarchive task sucessfully');
+        })
+        .catch(() => {
+          setIsLoading(false);
+          console.log('Un-archive failed');
         });
     } catch (error) {
       console.log(error);
@@ -83,6 +91,7 @@ export default function ArchieveList() {
 
   return (
     <View style={styles.container}>
+      <Loader modalVisible={isLoading} />
       <View style={styles.headerCon}>
         <Text style={styles.headerText}>Archived Tasks</Text>
       </View>

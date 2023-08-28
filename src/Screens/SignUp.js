@@ -27,6 +27,7 @@ export default function Signup() {
   const [passwordErrorText, setPasswordErrorText] = useState('');
   const [confirmPasswordErrorText, setConfirmPasswordErrorText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [allError, setAllError] = useState(false);
 
   const handleSignUp = async => {
     let hasErrors = false;
@@ -176,14 +177,26 @@ export default function Signup() {
           }}
         />
       </View>
-      <View style={styles.lastCon}>
+      <View
+        style={[
+          styles.lastCon,
+          {
+            top:
+              usernameErrorText &&
+              emailErrorText &&
+              passwordErrorText &&
+              confirmPasswordErrorText
+                ? -60
+                : -90,
+          },
+        ]}>
         <Text style={styles.lastText}>Don't have an Account?</Text>
         <TouchableOpacity
           style={styles.lastConBtn}
           onPress={() => {
             navigation.navigate('SignIn');
           }}>
-          <Text style={styles.lastbtnText}>SignIn</Text>
+          <Text style={styles.lastbtnText}> SignIn</Text>
         </TouchableOpacity>
       </View>
     </ScrollView>
@@ -247,8 +260,8 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   lastCon: {
-    position: 'absolute',
-    top: 670,
+    // position: 'absolute',
+    // top: -65,
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
@@ -256,13 +269,13 @@ const styles = StyleSheet.create({
     // backgroundColor: 'green',
   },
   lastConBtn: {
-    left: 70,
+    // left: 70,
   },
   lastText: {
     fontSize: 16,
     fontWeight: '300',
     color: 'black',
-    left: 65,
+    // left: 65,
     // alignSelf: 'center',
   },
   lastbtnText: {
